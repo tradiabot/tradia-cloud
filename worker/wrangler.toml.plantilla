@@ -1,0 +1,9 @@
+# Lo completa el workflow «Instalar TradIA» con tus datos. No edites a mano.
+name = "tradia-cloud"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "AGENTE"
+id = "__KV_ID__"
