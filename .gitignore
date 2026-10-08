@@ -9,3 +9,4 @@ app/android/.gradle/
 *.apk
 *.keystore
 local.properties
+!docs/TradIA-Cloud.apk
