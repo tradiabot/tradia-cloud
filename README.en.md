@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/banner.svg" alt="tradIA cloud" width="100%"></p>
 <h1 align="center">TradIA Cloud</h1>
-<p align="center"><a href="README.md">Español</a> · <a href="AVISO-LEGAL.md#disclaimer-english">Disclaimer</a> · <a href="LICENSE">MIT License</a></p>
+<p align="center"><a href="https://tradiabot.github.io/tradia-cloud/"><b>🌐 Website</b></a> · <a href="README.md">Español</a> · <a href="AVISO-LEGAL.md#disclaimer-english">Disclaimer</a> · <a href="LICENSE">MIT License</a></p>
 <p align="center"><b>A crypto trading agent that lives in <i>your own cloud</i>, with your keys and your rules.</b><br>
 Android app · Cloudflare Workers · GitHub Actions · several free AIs with consensus · exchanges via ccxt</p>
 

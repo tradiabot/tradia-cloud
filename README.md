@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/banner.svg" alt="tradIA cloud — tu agente cripto, en tu propia nube" width="100%"></p>
 <h1 align="center">TradIA Cloud</h1>
-<p align="center"><a href="README.en.md">English</a> · <a href="AVISO-LEGAL.md">Aviso legal</a> · <a href="LICENSE">Licencia MIT</a></p>
+<p align="center"><a href="https://tradiabot.github.io/tradia-cloud/"><b>🌐 Página oficial</b></a> · <a href="README.en.md">English</a> · <a href="AVISO-LEGAL.md">Aviso legal</a> · <a href="LICENSE">Licencia MIT</a></p>
 <p align="center"><b>Agente de trading cripto que vive en <i>tu propia nube</i>, con tus claves y tus reglas.</b><br>
 App Android · Cloudflare Workers · GitHub Actions · varias IAs gratis con consenso · exchanges vía ccxt</p>
 

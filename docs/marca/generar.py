@@ -144,10 +144,42 @@ def png(tam, ruta):
     img.resize((tam, tam), Image.LANCZOS).save(ruta)
 
 
+def og(ruta):
+    """Imagen para compartir (Open Graph 1200×630): logo + nombre + lema."""
+    from PIL import ImageFont
+    W, H = 1200, 630
+    a, b = [tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for c in (CIELO_A, CIELO_B)]
+    img = Image.new("RGB", (W, H))
+    for y in range(H):
+        t = y / (H - 1)
+        ImageDraw.Draw(img).line([(0, y), (W, y)], fill=tuple(int(a[i] + (b[i] - a[i]) * t) for i in range(3)))
+    img = img.convert("RGBA")
+    halo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(halo).ellipse([820, -260, 1420, 340], fill=(242, 181, 68, 60))
+    img = Image.alpha_composite(img, halo.filter(ImageFilter.GaussianBlur(90)))
+    tmp = os.path.join(DOCS, "marca", "_logo_tmp.png")
+    png(300, tmp)
+    img.alpha_composite(Image.open(tmp), (90, 165))
+    os.remove(tmp)
+    F = "/usr/share/fonts/truetype/dejavu/"
+    serif, serif_i = ImageFont.truetype(F + "DejaVuSerif.ttf", 104), ImageFont.truetype(F + "DejaVuSerif-Italic.ttf", 104)
+    sans, sans_b = ImageFont.truetype(F + "DejaVuSans.ttf", 30), ImageFont.truetype(F + "DejaVuSans-Bold.ttf", 22)
+    d = ImageDraw.Draw(img)
+    x, y = 440, 210
+    for txt, f, col in (("trad", serif, CREMA), ("IA", serif_i, TERRACOTA), (" cloud", serif, CREMA)):
+        d.text((x, y), txt, font=f, fill=col)
+        x += d.textlength(txt, font=f)
+    d.text((446, 355), "Tu agente cripto, en tu propia nube.", font=sans, fill=CREMA)
+    d.text((446, 400), "Varias IAs gratis votan · tus claves · tus reglas", font=sans, fill=SALVIA)
+    d.text((446, 470), "APP ANDROID · GRATIS · CÓDIGO ABIERTO (MIT)", font=sans_b, fill=MOSTAZA)
+    img.convert("RGB").save(ruta, quality=92)
+
+
 if __name__ == "__main__":
     svg_logo()
     svg_banner()
     vector_android()
     png(512, os.path.join(DOCS, "logo-512.png"))
     png(192, os.path.join(DOCS, "marca", "icono-192.png"))
+    og(os.path.join(DOCS, "og.png"))
     print("marca generada")
