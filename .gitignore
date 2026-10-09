@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 worker/wrangler.toml
 __pycache__/
 *.pyc
