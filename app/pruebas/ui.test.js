@@ -78,7 +78,7 @@ const R=(status,data,headers)=>Promise.resolve({ok:status<400,status,json:()=>Pr
   ok(/EJECUTADA/.test(d.getElementById('ordenesIA').textContent)&&/FRENADA POR LA IA/.test(d.getElementById('ordenesIA').textContent)&&/IA: COMPRAR 68%/.test(d.getElementById('ordenesIA').textContent),'órdenes según la IA con su resultado');
   click(d,'.nav [data-target="ordenes"]');await espera(30);
   {const P=()=>d.getElementById('ordPend'),H=()=>d.getElementById('ordHechas');
-   ok(d.querySelectorAll('.nav button').length===9&&d.querySelector('.nav [data-target="predicciones"]'),'barra inferior con Órdenes, Historial y 🎲 Predicciones (beta)');
+   ok(d.querySelectorAll('.nav button').length===8&&d.querySelector('.nav [data-target="historial"]'),'barra inferior con Órdenes e Historial (sin predicciones)');
    ok(/SOL/.test(P().textContent)&&/PROPUESTA/.test(P().textContent)&&/🤖 IA/.test(P().textContent)&&/Esperando precio/.test(P().textContent),'órdenes pendientes: propuesta de la IA y la tuya esperando precio');
    ok(/EJECUTADA/.test(H().textContent),'órdenes recientes');
    click(d,'#ordPend [data-oid="d1"] [data-oa="aprobar"]');await espera(20);click(d,'#mSi');await espera(50);
@@ -105,12 +105,6 @@ const R=(status,data,headers)=>Promise.resolve({ok:status<400,status,json:()=>Pr
   ok(/Ciclo #58/.test(d.getElementById('iaCab').textContent)&&/nemotron/.test(d.getElementById('iaCab').textContent),'cabecera: ciclo, hora y modelo');
   // ---- Gráficas por activo
   click(d,'.nav [data-target="cartera"]');await espera(30);
-  {const pl=d.getElementById('predLista').textContent;
-   ok(!d.getElementById('predPanel').classList.contains('oculto')&&/¿BTC ≥ 85 501 al vencer\?/.test(pl)&&/NO/.test(pl)&&/2,55 USDT/.test(pl)&&/cobras 5 USDT/.test(pl)&&/le da 51%/.test(pl)&&/vence en 12 h/.test(pl),'Cartera: predicción con nombre, lado, valor, pago y vencimiento');}
-  click(d,'#predLista [data-pia="+90151"]');await espera(40);
-  {const res=d.querySelector('#predLista [data-pres="+90151"]').textContent;
-   ok(/La IA sugiere/.test(res)&&/MANTENER · 62%/.test(res)&&/IA 58% vs mercado 51%/.test(res)&&/Tú decides/.test(res)&&/objetivo 85\.?501/.test(res),'predicción: la IA analiza y sugiere, el usuario decide ('+res.slice(0,90)+')');
-   ok(/VOLVER A ANALIZAR/.test(d.querySelector('#predLista [data-pia="+90151"]').textContent),'se puede volver a analizar');}
   ok(d.querySelectorAll('#activos [data-graf]').length===3&&!d.querySelector('#activos [data-graf="USDT"]'),'activos tocables (sin la moneda base)');
   click(d,'#activos [data-graf="BTC"] .info');await espera(40);
   const G=()=>d.getElementById('grafCuerpo');
@@ -169,137 +163,10 @@ const R=(status,data,headers)=>Promise.resolve({ok:status<400,status,json:()=>Pr
   click(d,'[data-billetera^="monero:"]');ok(/No hay billetera de Monero/.test(d.getElementById('toast').textContent),'avisa si no hay billetera Monero');
   click(d,'#temaChips [data-tema="dia"]');ok(d.documentElement.dataset.tema==='dia','cambio de tema desde Config');
   ok(w.appBack()===true&&d.querySelector('.screen.active').id==='panel','botón atrás vuelve al panel');
-  // ---- Predicciones
-  w.__agente.irA('predicciones');await espera(60);
-  const PL=()=>d.getElementById('pmLista');
-  ok(PL().querySelectorAll('.card').length===2&&/BTC/.test(PL().textContent)&&!/Fed|S&P/.test(PL().textContent),'explorar: cripto hoy por defecto');
-  ok(!d.querySelector('#pmFiltro [data-pf="deporte"]')&&/CRIPTO HOY · 2/.test(d.getElementById('pmFiltro').textContent)&&/ECONOMÍA Y EMPRESAS · 2/.test(d.getElementById('pmFiltro').textContent),'sin deportes; filtros con cuántos hay');
-  ok(/«Sí» gana si BTC está en 85 501 o más/.test(PL().textContent),'cada mercado explica cuándo gana «Sí»');
-  click(d,'#pmFiltro [data-pf="cripto_mediano"]');ok(PL().querySelectorAll('.card').length===1&&/toca 92 500/.test(PL().textContent),'cripto mediano plazo');
-  click(d,'#pmFiltro [data-pf="bolsa"]');ok(/S&P 500 ≥ 7590/.test(PL().textContent)&&/S&P 500 ahora/.test(PL().textContent),'bolsa y materias primas con nombre legible');
-  click(d,'#pmFiltro [data-pf="economia"]');ok(PL().querySelectorAll('.card').length===2&&/Fed mantiene/.test(PL().textContent)&&/Anthropic/.test(PL().textContent),'economía y empresas');
-  click(d,'#pmFiltro [data-pf="cripto_hoy"]');
-  ok(/modelo Sí 56,1%/.test(PL().textContent)&&/ventaja \+2,9/.test(PL().textContent),'explorar: modelo y ventaja');
-  click(d,'#pmFiltro [data-pf="ventaja"]');ok(/S&P 500/.test(PL().querySelector('.card').textContent)&&PL().querySelectorAll('.card').length===2,'con ventaja: primero la mayor (S&P 500 Sí +4,2), de todas las categorías');
-  click(d,'#pmFiltro [data-pf="todo"]');d.getElementById('pmBuscar').value='fed';d.getElementById('pmBuscar').dispatchEvent(new w.Event('input'));
-  ok(PL().querySelectorAll('.card').length===1&&/Fed/.test(PL().textContent),'buscar mercados');
-  click(d,'#pmFiltro [data-pf="cripto_hoy"]');
-  {const c=d.querySelector('[data-pmres="9015"]').closest('.card');ok(c.querySelectorAll('[data-pmia]').length===1&&c.querySelectorAll('[data-pmc]').length===2&&/COMPRAR «SÍ»/.test(c.textContent)&&/COMPRAR «NO»/.test(c.textContent),'cada mercado: comprar Sí, comprar No y una sola IA');
-   ok(/se mueve ±1,9% en 24 h/.test(c.textContent),'tarjeta con la volatilidad de 24 h');
-   ok(/🔥 turbulento/.test(d.querySelector('[data-pmres="9018"]').closest('.card').textContent),'subyacente turbulento marcado');}
-  {const G=d.getElementById('pmGlobal');ok(!G.classList.contains('oculto')&&/Mercado global/.test(G.textContent)&&/Tono mixto/.test(G.textContent)&&/S&P 500/.test(G.textContent)&&/HYPE 🔥/.test(G.textContent),'panel del mercado global');}
-  click(d,'[data-pmia="9015"]');await espera(40);{const R=d.querySelector('[data-pmres="9015"]');
-   ok(/La IA sugiere/.test(R.textContent)&&/COMPRAR NO/.test(R.textContent)&&/Probabilidad de «No»: IA 62% vs mercado 41/.test(R.textContent),'✨ la IA analiza el mercado completo y elige el lado');
-   ok(/±0,42% en 1 h/.test(R.textContent)&&/🌍/.test(R.textContent),'la respuesta muestra volatilidad 1/24/48 h y el mercado global');
-   click(d,R.querySelector('[data-pcomprar]'));await espera(40);ok(/Comprar «No»/.test(d.getElementById('mTitulo').textContent),'comprar el lado que sugiere la IA');click(d,'#mNo');await espera(20);}
-  // Gráficas desde la respuesta de la IA
-  {const gb=d.querySelector('[data-pmres="9015"] [data-pgraf]');ok(gb&&gb.getAttribute('data-pgraf')==='#90151'&&/VER GRÁFICAS/.test(gb.textContent),'la respuesta de la IA trae «📈 Ver gráficas»');
-   click(d,gb);await espera(40);const GM=d.getElementById('grafModal'),GC=d.getElementById('grafCuerpo');
-   ok(GM.classList.contains('open')&&/BTC ≥ 85.501/.test(d.getElementById('grafTitulo').textContent)&&/Lado «No»/.test(d.getElementById('grafSub').textContent),'abre las gráficas de esa predicción');
-   ok(GC.querySelector('svg.pprob')&&/Probabilidad de «No»/.test(GC.textContent)&&/modelo 43,9%/.test(GC.textContent),'gráfica de probabilidad con la línea del modelo');
-   ok(/objetivo/.test(GC.textContent)&&/RSI 14/.test(GC.textContent)&&/MACD/.test(GC.textContent)&&GC.querySelectorAll('svg').length===4,'precio de BTC con objetivo, RSI y MACD');
-   ok(/por encima del objetivo/.test(GC.textContent)&&/«No» gana si BTC queda por debajo de 85.501 al vencer/.test(GC.textContent),'lectura en palabras');
-   ok(/Ventaja/.test(d.getElementById('grafPos').textContent)&&/Tienes/.test(d.getElementById('grafPos').textContent),'métricas: mercado, modelo, ventaja y tu posición');
-   click(d,'#grafTf [data-tf="1h"]');await espera(10);const n1=GC.querySelector('svg:not(.pprob)').outerHTML;click(d,'#grafTf [data-tf="1d"]');await espera(10);ok(GC.querySelector('svg:not(.pprob)').outerHTML!==n1&&/velas 1D/.test(GC.textContent),'cambiar a 1D redibuja el subyacente');
-   {const A=d.getElementById('grafPredAcc');ok(d.getElementById('grafAcc').classList.contains('oculto')&&A.querySelectorAll('[data-gpc]').length===2&&/COMPRAR «SÍ» · 59%/.test(A.textContent)&&/COMPRAR «NO» · 41%/.test(A.textContent)&&A.querySelectorAll('#grafPredIABtn').length===1,'gráfica: comprar Sí, comprar No y una sola IA');
-    ok(/±0,42%<\/b> en 1 h/.test(GC.innerHTML)&&/hasta vencer/.test(GC.textContent)&&/🌍/.test(GC.textContent),'gráfica: volatilidad 1/24/48 h y mercado global');
-    ok(/VENDER MIS 5 U\. DE «NO»/.test(A.textContent),'si ya tienes ese lado: botón vender');}
-   click(d,'#grafPredAcc [data-gpv]');await espera(40);ok(!GM.classList.contains('open')&&/Vender «No»/.test(d.getElementById('mTitulo').textContent)&&d.getElementById('pmU').value==='5','vender desde la gráfica');
-   // Nunca vender con pérdida sin quererlo
-   ok(/Sin pérdida: la compraste a 0,45/.test(d.getElementById('pmCalc').textContent)&&d.getElementById('pmPerdida'),'venta: muestra lo que pagaste');
-   d.getElementById('pmL').value='0.44';d.getElementById('pmL').dispatchEvent(new w.Event('input'));
-   ok(/vendes con pérdida/.test(d.getElementById('pmCalc').textContent)&&/0.4514/.test(d.getElementById('pmCalc').textContent),'avisa la pérdida y desde dónde no hay');
-   {const n0=w.__agente.datos.ordenes.length;click(d,'#mSi');await espera(60);ok(w.__agente.datos.ordenes.length===n0&&/sería con pérdida/.test(d.getElementById('toast').textContent),'no crea la venta con pérdida si no la marcas');}
-   click(d,'#grafCerrar');w.__agente.abrirGraficaPred('#90151');await espera(40);click(d,'#grafPredAcc [data-gpv]');await espera(40);
-   d.getElementById('pmL').value='0.44';d.getElementById('pmL').dispatchEvent(new w.Event('input'));d.getElementById('pmPerdida').checked=true;click(d,'#mSi');await espera(60);
-   {const v=w.__agente.datos.ordenes.filter(x=>x.tipo==='prediccion'&&x.accion==='VENDER'&&x.limite===0.44)[0];ok(v&&v.permitir_perdida===true,'si la marcas tú, sí la crea (con permiso explícito)');}
-   click(d,'#mNo');await espera(20);
-   ok(/Pagaste 0,45 por unidad/.test(d.getElementById('pmMias').textContent)&&/sin pérdida desde/.test(d.getElementById('pmMias').textContent),'tu posición muestra lo que pagaste');
-   ok(/creado por skew \(comisión ×2\)/.test(d.getElementById('pmMias').textContent),'tu posición dice quién creó el mercado y si cobra comisión doble');
-   click(d,'[data-pgraf="#90180"]');await espera(40);ok(!d.querySelector('#grafPredAcc [data-gpv]')&&/🔥 Turbulento/.test(GC.textContent),'mercado sin posición: sin vender; avisa turbulencia');
-   click(d,'#grafPredIABtn');await espera(40);ok(/COMPRAR NO/.test(d.getElementById('grafPredIA').textContent)&&!d.querySelector('#grafPredIA [data-pgraf]')&&d.querySelector('#grafPredIA [data-pcomprar]'),'una IA dentro de la gráfica: analiza el mercado y sugiere lado');
-   click(d,'#grafPredAcc [data-gpc="#90181"]');await espera(40);ok(!GM.classList.contains('open')&&/Comprar «No»/.test(d.getElementById('mTitulo').textContent)&&d.getElementById('pmL').value==='0.86547','comprar «No» desde la gráfica con el precio del libro');click(d,'#mNo');await espera(20);
-   w.__agente.abrirGraficaPred('#90180');await espera(40);click(d,'#grafPredAcc [data-gpc="#90180"]');await espera(40);ok(/Comprar «Sí»/.test(d.getElementById('mTitulo').textContent),'comprar «Sí» desde la gráfica');click(d,'#mNo');await espera(20);
-   w.__agente.abrirGraficaPred('#48860');await espera(40);ok(/no depende de un precio/.test(GC.textContent)&&/Fed mantiene la tasa/.test(GC.textContent)&&GC.querySelectorAll('svg').length===1,'economía: solo la probabilidad y la regla');
-   click(d,'#grafCerrar');w.__agente.abrirGrafica('BTC');await espera(40);ok(!d.getElementById('grafAcc').classList.contains('oculto')&&d.getElementById('grafPredAcc').classList.contains('oculto'),'la gráfica normal recupera sus botones');click(d,'#grafCerrar');}
-  // IA en cada ciclo
-  {const T=d.getElementById('pmIaTxt').textContent,U=d.getElementById('pmIaUlt').textContent;
-   ok(/En cada ciclo/.test(T)&&/propuesta/.test(T)&&/«No»/.test(T)&&/comprar más/.test(T)&&/11 USDC/.test(T)&&d.querySelector('#pmIaChips [data-pi="proponer"]').classList.contains('active'),'IA en cada ciclo: propone por defecto y explica límites');
-   ok(/revisó 14 mercados/.test(U)&&/NO ENTRAR 70%/.test(U)&&/MANTENER/.test(U),'muestra lo que revisó la IA en el último ciclo');
-   click(d,'#pmIaChips [data-pi="auto"]');await espera(20);ok(/operará predicciones sola/.test(d.getElementById('mTitulo').textContent),'«Ejecuta sola» pide confirmación');click(d,'#mSi');await espera(60);
-   ok(w.__agente.datos.config.pred_ia==='auto'&&d.getElementById('pmIaModo').textContent==='AUTOMÁTICA','modo automático guardado');
-   ok(/🧠 Supervisor IA/.test(d.getElementById('pmIaUlt').textContent)&&/Ventaja mínima → 10/.test(d.getElementById('pmIaUlt').textContent),'muestra el último ajuste del supervisor');
-   click(d,'#pmIaAjustes');await espera(80);ok(w.__agente.vista()==='estrategia'&&d.getElementById('cfgPred').closest('section').id==='estrategia','«Ajustes de predicciones» lleva a Estrategia');
-   const cp=id=>d.getElementById(id);
-   ok(cp('cpMonto').value==='11'&&cp('cpCiclo').value==='1'&&cp('cpVent').value==='8'&&cp('cpVender').checked&&cp('cpSuper').checked&&d.querySelector('#cfgPredCats [data-pc="cripto_hoy"]').classList.contains('active'),'Estrategia → Predicciones con los valores actuales');
-   ok(/Ventaja mínima 8 → 10/.test(cp('cpSuperLog').textContent),'Estrategia muestra los ajustes del supervisor');
-   click(d,'#cfgPredCats [data-pc="cripto_mediano"]');click(d,'#cfgPredCats [data-pc="bolsa"]');cp('cpMonto').value='15';cp('cpCiclo').value='2';cp('cpGan').value='95';cp('cpSuper').checked=false;cp('cpMonto').dispatchEvent(new w.Event('input',{bubbles:true}));
-   ok(/cripto hoy, cripto mediano plazo, bolsa y materias/.test(cp('cpResumen').textContent)&&/máx. 2 por ciclo/.test(cp('cpResumen').textContent)&&/≥ 95%/.test(cp('cpResumen').textContent),'el resumen cambia mientras editas');
-   click(d,'#cpGuardar');await espera(60);{const c=w.__agente.datos.config;ok(c.pred_monto===15&&c.pred_max_ciclo===2&&c.pred_tomar_ganancia===95&&c.pred_supervisor===false&&c.pred_categorias.join()==='cripto_hoy,cripto_mediano,bolsa','guardar ajustes de predicciones');}
-   ok(cp('cpCorto').checked&&cp('cpCortoH').value==='36','«solo corto plazo» activado por defecto (36 h)');
-   click(d,'#cfgPiChips [data-pi="auto"]');await espera(20);ok(/Solo a corto plazo \(mercados que vencen en ≤ 36 h\)/.test(d.getElementById('mTexto').textContent),'al activar «Ejecuta sola» explica que solo es corto plazo');click(d,'#mSi');await espera(60);
-   ok(/Ejecuta sola solo lo que vence en ≤ 36 h; lo de mediano y largo plazo te lo propone/.test(cp('cpResumen').textContent),'resumen: corto plazo automático, mediano y largo solo propuestas');
-   cp('cpCortoH').value='48';cp('cpCortoH').dispatchEvent(new w.Event('input',{bubbles:true}));click(d,'#cpGuardar');await espera(60);ok(w.__agente.datos.config.pred_corto_horas===48&&w.__agente.datos.config.pred_auto_solo_corto===true,'guardar el límite de corto plazo');
-   cp('cpCorto').checked=false;click(d,'#cpGuardar');await espera(60);ok(w.__agente.datos.config.pred_auto_solo_corto===false&&/cualquier plazo/.test(cp('cpResumen').textContent),'se puede apagar');
-   click(d,'#cfgPiChips [data-pi="off"]');await espera(60);ok(w.__agente.datos.config.pred_ia==='off'&&d.querySelector('#pmIaChips [data-pi="off"]').classList.contains('active'),'el modo también se cambia desde Estrategia');
-   click(d,'#cpDefecto');ok(cp('cpMonto').value==='11'&&cp('cpSuper').checked,'valores sugeridos');w.__agente.irA('predicciones');await espera(40);
-   click(d,'#pmIaChips [data-pi="proponer"]');await espera(60);ok(w.__agente.datos.config.pred_ia==='proponer','volver a «Propone» sin confirmar');}
-  click(d,'[data-pmc="9018:0"]');await espera(40);
-  ok(d.getElementById('pmL').value==='0.86547'&&/venden a 0.86547/.test(d.getElementById('mExtra').textContent),'comprar: límite = vendedor más barato del libro en vivo');
-  ok(d.getElementById('modal').classList.contains('open')&&/Comprar «Sí»/.test(d.getElementById('mTitulo').textContent)&&/Si aciertas cobras/.test(d.getElementById('pmCalc').textContent),'comprar: formulario con costo y pago');
-  d.getElementById('pmU').value='40';d.getElementById('pmL').value='0.27';d.getElementById('pmU').dispatchEvent(new w.Event('input'));
-  ok(/10,8 USDC/.test(d.getElementById('pmCalc').textContent),'calcula el costo máximo ('+d.getElementById('pmCalc').textContent.slice(0,40)+')');
-  ok(/no se llena ahora: el más barato vende a 0.86547/.test(d.getElementById('pmCalc').textContent),'avisa si el límite no se llenaría');
-  click(d,'#mSi');await espera(40);ok(/¿Ejecutar ya\?/.test(d.getElementById('mTitulo').textContent),'ofrece ejecutar ya');click(d,'#mNo');await espera(40);
-  {const o=w.__agente.datos.ordenes.filter(x=>x.tipo==='prediccion')[0];ok(o&&o.coin==='#90180'&&o.unidades===40&&o.limite===0.27&&o.accion==='COMPRAR'&&/HYPE/.test(o.etiqueta),'orden de predicción creada');
-   ok(/🎲/.test(d.getElementById('pmOrd').textContent)&&/40 u\. a ≤ 0,27/.test(d.getElementById('pmOrd').textContent)&&d.querySelector('#pmOrd [data-ya]'),'se ve con «Ejecutar ya»');}
-  ok(/VENDER/.test(d.getElementById('pmMias').textContent),'mis posiciones con VENDER');
-  click(d,'#pmMias [data-pmv="90151"]');await espera(40);ok(d.getElementById('pmL').value==='0.81001'&&d.getElementById('pmU').value==='5'&&/Recibes al menos/.test(d.getElementById('pmCalc').textContent),'vender: propone todas tus unidades al mejor comprador');click(d,'#mNo');await espera(20);
-  // Tu caso: venta de SOL Sí a 0.827 que no se llenó
-  ok(/No se llenó/.test(d.getElementById('pmOrd').textContent)&&d.querySelector('#pmOrd [data-reint="d4"]'),'orden que no se llenó: explica y ofrece reintentar');
-  click(d,'#pmOrd [data-reint="d4"]');await espera(40);
-  ok(/Vender de nuevo/.test(d.getElementById('mTitulo').textContent)&&d.getElementById('pmL').value==='0.81001'&&d.getElementById('pmU').value==='2'&&!/no se llena ahora/.test(d.getElementById('pmCalc').textContent),'reintentar: mismo mercado y unidades, al precio real de ahora');
-  click(d,'#mSi');await espera(40);click(d,'#mNo');await espera(40);
-  {const o=w.__agente.datos.ordenes.filter(x=>x.tipo==='prediccion'&&x.estado==='aprobada'&&x.coin==='#90170')[0];ok(o&&o.limite===0.81001&&o.accion==='VENDER','orden nueva con límite 0.81001');
-   click(d,'#pmOrd [data-oid="'+o.id+'"] [data-oa="cancelar"]');await espera(60);ok(w.__agente.datos.ordenes.filter(x=>x.id===o.id)[0].estado==='cancelada','cancelar desde la pestaña 🎲 funciona');}
-  // ---- Pedir a la IA en predicciones
-  w.__agente.irA('predicciones');await espera(40);
-  ok(d.getElementById('pmPedir')&&d.getElementById('pmPedir').closest('section').id==='predicciones','panel «Pedir a la IA» en la pestaña 🎲');
-  click(d,'#pmPedirEj [data-ej]');ok(/mejor oportunidad cripto/.test(d.getElementById('pmPedirTxt').value),'ejemplos rellenan el pedido');
-  d.getElementById('pmPedirTxt').value='';click(d,'#pmPedirBtn');await espera(20);ok(/Escribe qué quieres/.test(d.getElementById('toast').textContent),'pide escribir algo');
-  d.getElementById('pmPedirTxt').value='algo con HYPE para hoy';click(d,'#pmPedirBtn');await espera(80);
-  {const R=d.getElementById('pmPedirRes');
-   ok(/Lo más claro hoy es el «No» de HYPE/.test(R.textContent)&&/15 u\. a ≤ 0.75/.test(R.textContent)&&/si aciertas cobras 15 USDC/.test(R.textContent),'muestra la respuesta y la predicción propuesta');
-   ok(/Descartadas: .*no hay vendedores/.test(R.textContent)&&R.querySelector('[data-pgraf="#90181"]'),'explica las descartadas y ofrece gráficas');
-   const o=w.__agente.datos.ordenes.filter(x=>x.tipo==='prediccion'&&x.coin==='#90181'&&x.estado==='propuesta')[0];ok(o&&o.origen==='ia','queda como propuesta de la IA');
-   ok(new RegExp('15 u\\. a ≤ 0,75').test(d.getElementById('pmOrd').textContent),'aparece en «Órdenes de predicción»');
-   // Editar la propuesta de la IA antes de aprobarla
-   {const card=d.querySelector('#pmOrd [data-oid="'+o.id+'"]');ok(card&&card.querySelector('[data-pedit]')&&/EDITAR/.test(card.textContent),'la propuesta de la IA en «Órdenes de predicción» se puede editar');}
-   click(d,R.querySelector('[data-pedit]'));await espera(60);
-   ok(/Editar compra «No»/.test(d.getElementById('mTitulo').textContent)&&/La IA propuso 15 u\. a ≤ 0.75/.test(d.getElementById('mTexto').textContent)&&d.getElementById('pmU').value==='15'&&d.getElementById('pmL').value==='0.75','editar abre con las unidades y el precio de la IA');
-   ok(/sigue esperando tu aprobación/.test(d.getElementById('mTexto').textContent)&&d.getElementById('mSi').textContent==='GUARDAR CAMBIOS','aclara que sigue siendo propuesta');
-   d.getElementById('pmU').value='20';d.getElementById('pmU').dispatchEvent(new w.Event('input'));d.getElementById('pmL').value='0.7';d.getElementById('pmL').dispatchEvent(new w.Event('input'));
-   ok(/Pagas como máximo <b>14 USDC/.test(d.getElementById('pmCalc').innerHTML)&&/no se llena ahora/.test(d.getElementById('pmCalc').innerHTML),'recalcula costo y avisa si el límite no se llena');
-   click(d,'#mSi');await espera(80);
-   {const e=w.__agente.datos.ordenes.filter(x=>x.id===o.id)[0];ok(e.unidades===20&&e.limite===0.7&&e.estado==='propuesta'&&e.pagar_con==='USDC','guarda los cambios y sigue como propuesta');
-    ok(/20 u\. a ≤ 0.7 /.test(R.textContent)&&/20 u\. a ≤ 0,7/.test(d.getElementById('pmOrd').textContent),'la respuesta y la lista muestran lo editado');}
-   click(d,R.querySelector('[data-pped="aprobar"]'));await espera(80);
-   ok(w.__agente.datos.ordenes.filter(x=>x.id===o.id)[0].estado==='aprobada'&&/APROBADA/.test(R.textContent)&&R.querySelector('[data-ya]'),'aprobar desde la respuesta y ofrecer «Ejecutar ya»');}
-  // ---- Pagar predicciones con HYPE
-  w.__agente.irA('estrategia');await espera(40);
-  click(d,'#cfgPredPago [data-pp="HYPE"]');ok(/vende el HYPE justo para pagar/.test(d.getElementById('cpResumen').textContent),'Estrategia: opción vender HYPE si falta USDC');
-  click(d,'#cpGuardar');await espera(60);ok(w.__agente.datos.config.pred_pagar_con==='HYPE','se guarda «pagar con HYPE»');
-  {const U=w.__agente.datos.estado.ultimo;U.real={libre:2,saldos:{HYPE:1}};U.activos.push({simbolo:'HYPE',cantidad:1,precio:40,valor:40,peso:3});
-   w.__agente.irA('predicciones');await espera(40);click(d,'[data-pmc="9018:0"]');await espera(60);
-   ok(d.getElementById('pmHype')&&d.getElementById('pmHype').checked,'formulario de compra: «vender HYPE» marcado según tu estrategia');
-   d.getElementById('pmU').value='40';d.getElementById('pmL').value='0.3';d.getElementById('pmU').dispatchEvent(new w.Event('input'));
-   ok(/Tienes 2 USDC: se venderán ~0,26\d* HYPE \(≈10,5 USDC\)/.test(d.getElementById('pmCalc').textContent),'calcula cuánto HYPE vende ('+d.getElementById('pmCalc').textContent.slice(60,170)+')');
-   d.getElementById('pmHype').checked=false;d.getElementById('pmHype').dispatchEvent(new w.Event('change'));
-   ok(/Solo tienes 2 USDC libres/.test(d.getElementById('pmCalc').textContent),'sin la casilla avisa que no alcanza');
-   d.getElementById('pmHype').checked=true;click(d,'#mSi');await espera(60);click(d,'#mNo');await espera(40);
-   const o=w.__agente.datos.ordenes.filter(x=>x.tipo==='prediccion'&&x.coin==='#90180'&&x.unidades===40&&x.limite===0.3)[0];
-   ok(o&&o.pagar_con==='HYPE'&&/si falta USDC vende HYPE/.test(d.getElementById('pmOrd').textContent),'la orden lleva «pagar con HYPE»');
-   U.real=null;U.activos.pop();}
+  // ---- 🌍 Mercado global en la pestaña IA (las predicciones ya no están en esta app)
+  ok(!d.getElementById('predicciones')&&!d.querySelector('.nav [data-target="predicciones"]')&&!d.getElementById('cfgPred'),'sin pestaña ni ajustes de predicciones');
+  w.__agente.irA('ia');await espera(60);
+  {const G=d.getElementById('pmGlobal');ok(G.closest('section').id==='ia'&&!G.classList.contains('oculto')&&/Mercado global/.test(G.textContent)&&/Tono mixto/.test(G.textContent)&&/S&P 500/.test(G.textContent),'🌍 mercado global en la pestaña IA');}
   // ---- Donación en USDC y firma
   const USDC='0xAC43f9b0E7F0ae6386cfC8ef6BFf62CE9c3006A1';
   ok(d.getElementById('dirUsdc').textContent===USDC&&/mínimo 5 USDC/.test(d.getElementById('donar').textContent)&&/Retirar → Arbitrum/.test(d.getElementById('donar').textContent),'donación USDC en Arbitrum con mínimo y ruta desde Hyperliquid');
@@ -320,7 +187,7 @@ const R=(status,data,headers)=>Promise.resolve({ok:status<400,status,json:()=>Pr
   click(d,'#simplePend [data-sid="'+sid+'"] [data-sa="cancelar"]');await espera(60);
   ok(!d.querySelector('#simplePend [data-sid="'+sid+'"]'),'cancelar desde el Panel simple');
   click(d,'.nav [data-target="config"]');click(d,'#modoUiChips [data-ui="completo"]');
-  ok(visibles().split(',').length===9&&!d.documentElement.hasAttribute('data-simple')&&w.__agente.S.simple===false,'cambiar a modo completo desde Config');
+  ok(visibles().split(',').length===8&&!d.documentElement.hasAttribute('data-simple')&&w.__agente.S.simple===false,'cambiar a modo completo desde Config');
   w.__agente.irA('radar');click(d,'#modoUiChips [data-ui="simple"]');
   ok(d.querySelector('.screen.active').id==='panel','al pasar a simple desde una pestaña oculta vuelve al Panel');
   ok(errores.length===0,'sin errores JS: '+errores.join(' | '));
@@ -443,8 +310,7 @@ const R=(status,data,headers)=>Promise.resolve({ok:status<400,status,json:()=>Pr
   ok(d.getElementById('conn').textContent.includes('EN LÍNEA'),'app en línea con la nube nueva');
   await espera(100);const sr=d.getElementById('saldoReal');
   ok(!sr.classList.contains('oculto')&&/Saldo real en hyperliquid/.test(sr.textContent)&&/25,5 USDC en Perps/.test(sr.textContent)&&/HYPE 1,25/.test(sr.textContent)&&/simulación/.test(sr.textContent),'panel: saldo real del exchange visible en simulación, con aviso de Perps ('+sr.textContent.slice(0,80)+')');
-  ok(!/\+90151 5/.test(sr.textContent)&&/🎲 1 predicción/.test(sr.textContent),'saldo real: las predicciones no salen como «+90151 5»');
-  ok(!d.getElementById('predPanel').classList.contains('oculto')&&/Actualiza tu nube/.test(d.getElementById('predLista').textContent),'nube vieja: avisa que hay predicciones y que actualice');
+  ok(!/\+90151/.test(sr.textContent)&&!/predicci/.test(sr.textContent),'saldo real: los tokens de predicción («+N») no aparecen');
   {const K=w.__agente,ea=K.datos.estado;ok(K.S.clavesTs>0,'guarda cuándo se cambiaron las claves');
    K.datos.estado={...ea,actualizado:K.S.clavesTs-3600000,ultimo:{ok:false,exchange:'cryptocom_app',errores:['ErrorExchange: Crypto.com App: claves rechazadas (401)']}};
    K.pintarEstado();const av=d.getElementById('erroresAviso');

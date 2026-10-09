@@ -9,7 +9,7 @@ IA_CLAVE (o GROQ_API_KEY) como antes.
 
 - `chat_json(mensajes)`: cadena de respaldo. Prueba cada proveedor y modelo en orden;
   un 429, un timeout o un JSON inválido pasan al siguiente.
-- `opinar` / `opinar_predicciones`: si el consenso está activo, preguntan a varias IAs
+- `opinar`: si el consenso está activo, pregunta a varias IAs
   en paralelo (un modelo de cada proveedor primero) y votan. Si no, usan la cadena.
 """
 import json
@@ -379,54 +379,3 @@ def opinar(propuestas, contexto, vigilar=None):
         )},
     ]
     return decidir(mensajes, _leer_opiniones, lambda s: "ESPERAR")
-
-
-VALIDAS_PRED = {"COMPRAR", "NO ENTRAR", "MANTENER", "VENDER", "COMPRAR MÁS"}
-
-
-def _leer_pred(datos):
-    out = {}
-    for o in _filas(datos, "coin"):
-        try:
-            coin, acc = str(o.get("coin", "")).strip(), str(o.get("accion") or "").upper().strip().replace("COMPRAR MAS", "COMPRAR MÁS")
-            if not re.match(r"^#\d+$", coin) or acc not in VALIDAS_PRED:
-                continue
-            prob = o.get("prob")
-            out[coin] = {"accion": acc, "confianza": max(0, min(100, int(float(o.get("confianza", 0) or 0)))),
-                         "prob": max(0.0, min(100.0, float(prob))) if prob not in (None, "") else None, "razon": str(o.get("razon", ""))[:200]}
-        except (AttributeError, TypeError, ValueError):
-            continue
-    return out
-
-
-def opinar_predicciones(candidatos, posiciones, glob=None, noticias=None):
-    """La IA revisa mercados de predicción con ventaja según el modelo y tus
-    posiciones, con el mercado global y las noticias de 24 h como contexto.
-    Devuelve ({"#N": {accion, confianza, prob, razon}}, modelo, error)."""
-    if not candidatos and not posiciones:
-        return {}, None, None
-    pedido = ("Mercados de predicción de Hyperliquid: cada unidad paga 1 USDC si acierta y 0 si no; el precio es la "
-              "probabilidad que da el mercado. «prob_modelo_pct» sale de un modelo log-normal con la volatilidad de 1 h, 24 h "
-              "y 48 h por tramos (no es certeza); «mov_tipico_1h_24h_48h_pct» es cuánto se mueve el subyacente normalmente y "
-              "«volatilidad» = turbulento si la última hora se mueve mucho más que lo normal. Sé escéptico: el modelo ignora "
-              "noticias y el mercado puede saber algo más.\n")
-    if glob and glob.get("resumen"):
-        pedido += (f"Mercado global ahora: {glob['resumen']} Úsalo en tu decisión: con aversión al riesgo o turbulencia sé más "
-                   "exigente con apuestas a que el precio suba o se mantenga quieto.\n")
-    if noticias:
-        pedido += f"Titulares de las últimas 24 h: {json.dumps(noticias[:12], ensure_ascii=False)}\n"
-    if candidatos:
-        pedido += ("Candidatos para ENTRAR (el modelo les ve ventaja). Para cada uno: COMPRAR o NO ENTRAR.\n"
-                   f"{json.dumps(candidatos, ensure_ascii=False)}\n")
-    if posiciones:
-        pedido += ("Posiciones que YA tiene el usuario. Para cada una: MANTENER (hasta el vencimiento), VENDER (cerrar ahora) "
-                   "o COMPRAR MÁS (solo si la señal es fuerte y el precio sigue barato). REGLA DEL USUARIO: nunca vender con pérdida, "
-                   "por mínima que sea; VENDER solo si «puede_vender_sin_perdida» es true (precio ≥ «vender_solo_desde»). Si no, MANTENER.\n"
-                   f"{json.dumps(posiciones, ensure_ascii=False)}\n")
-    mensajes = [
-        {"role": "system", "content": "Eres un analista prudente de mercados de predicción. Respondes SOLO JSON válido en español."},
-        {"role": "user", "content": pedido + 'Para cada «coin» da confianza 0-100, tu probabilidad de que ESE lado acierte (prob 0-100) y una razón breve (máx. 20 palabras).\n'
-                                             'Formato: {"opiniones":[{"coin":"#90170","accion":"NO ENTRAR","confianza":60,"prob":55,"razon":"..."}]}'},
-    ]
-    en_cartera = {p.get("coin") for p in posiciones or []}
-    return decidir(mensajes, _leer_pred, lambda c: "MANTENER" if c in en_cartera else "NO ENTRAR")

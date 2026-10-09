@@ -337,8 +337,6 @@ html[data-estilo="pro"] .dir{border-style:solid;border-radius:10px}
 html[data-simple] .nav button:not(.simple-ok){display:none}
 html[data-simple] .solo-completo{display:none!important}
 html:not([data-simple]) .solo-simple{display:none!important}
-.pred{border-top:1px dashed var(--line);padding:10px 0}.pred:first-child{border-top:0}
-.pred .prob{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-top:6px}.pred .prob i{display:block;height:100%;background:var(--acento2)}
 .dice{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
 .simple-orden{border-top:1px dashed var(--line);padding:10px 0}
 .simple-orden:first-child{border-top:0}
@@ -576,7 +574,6 @@ html[data-indie] .toast{border-left-color:var(--acento)}
  </div>
 </div>
 
-
 <!-- ====================== TUTORIAL ====================== -->
 <div id="tuto" role="dialog" aria-modal="true" aria-label="Tutorial de TradIA">
   <div class="tuto-caja">
@@ -634,35 +631,6 @@ html[data-indie] .toast{border-left-color:var(--acento)}
   </div>
 </section>
 
-<section id="predicciones" class="screen" aria-label="Predicciones">
-  <div class="section-head"><div><span class="eyebrow">HYPERLIQUID · BETA</span><h2>Predicciones</h2></div><span id="pmTs" class="pill">—</span></div>
-  <p id="pmAviso" class="notice warn oculto"></p>
-  <div class="panel" id="pmIaPanel"><div class="panel-title"><span>◎ IA en cada ciclo</span><span id="pmIaModo" class="pill">—</span></div>
-    <div class="chips" id="pmIaChips"><button data-pi="off">APAGADA</button><button data-pi="proponer">PROPONE · TÚ APRUEBAS</button><button data-pi="auto">EJECUTA SOLA</button></div>
-    <small id="pmIaTxt" class="muted" style="display:block;margin-top:6px">—</small>
-    <button id="pmIaAjustes" class="small ghost" style="margin-top:6px;width:100%">⚙ AJUSTES DE PREDICCIONES (ESTRATEGIA)</button>
-    <div id="pmIaUlt" style="margin-top:8px"></div>
-  </div>
-  <div class="panel" id="pmPedir">
-    <div class="panel-title"><span>✨ Pedir a la IA</span></div>
-    <p class="muted" style="margin:0;font-size:12px">Dile qué buscas y te propone predicciones concretas (hasta 3) al precio real del libro. Quedan en «Órdenes de predicción» para que las apruebes: no compra nada sin ti.</p>
-    <div class="chips" id="pmPedirEj" style="margin-top:8px"><button data-ej="Busca la mejor oportunidad cripto que vence hoy">₿ MEJOR DE HOY</button><button data-ej="Propón algo prudente a mediano plazo en BTC o ETH">📅 MEDIANO PLAZO</button><button data-ej="¿Qué hago con mis posiciones? Vende las que ya no convengan">🎲 MIS POSICIONES</button><button data-ej="Busca algo en bolsa, oro o petróleo con ventaja">📈 BOLSA</button></div>
-    <div class="form" style="margin-top:8px"><textarea id="pmPedirTxt" rows="2" maxlength="400" placeholder="Ej.: con 11 USDC, algo de BTC que venza hoy y tenga ventaja"></textarea>
-    <button id="pmPedirBtn" class="primary">PROPONER PREDICCIONES</button></div>
-    <div id="pmPedirRes"></div>
-  </div>
-  <div class="panel"><div class="panel-title"><span>Mis posiciones</span><span id="pmMiasN" class="pill">0</span></div><div id="pmMias"><p class="empty">—</p></div></div>
-  <div class="panel"><div class="panel-title"><span>Órdenes de predicción</span><span id="pmOrdN" class="pill">0</span></div><div id="pmOrd"><p class="empty">—</p></div></div>
-  <div class="panel oculto" id="pmGlobal"></div>
-  <div class="panel">
-    <div class="panel-title"><span>Explorar mercados</span><button id="pmRecargar" class="small ghost">↻</button></div>
-    <div class="chips" id="pmFiltro"><button data-pf="cripto_hoy" class="active">₿ CRIPTO HOY</button><button data-pf="cripto_mediano">📅 CRIPTO MEDIANO PLAZO</button><button data-pf="bolsa">📈 BOLSA Y MATERIAS</button><button data-pf="economia">🏛 ECONOMÍA Y EMPRESAS</button><button data-pf="ventaja">⚖ CON VENTAJA</button><button data-pf="todo">TODO</button></div>
-    <input id="pmBuscar" placeholder="Buscar (BTC, oro, Fed, Anthropic…)" style="margin-top:8px">
-    <small class="muted" style="display:block;margin-top:6px">El precio de cada lado es la probabilidad que le da el mercado (paga 1 USDC si aciertas). «Modelo» es la probabilidad según cuánto se mueve el precio en la última hora, 24 h y 48 h (la primera hora pesa la volatilidad de 1 h, hasta 24 h la de 24 h y después la de 48 h; en «toca X» cuenta tocarlo en cualquier momento); «ventaja» = modelo − mercado. Es una referencia, no una garantía. Economía y empresas no tienen modelo: pídele su opinión a la IA.</small>
-    <div id="pmLista" style="margin-top:6px"><p class="empty">—</p></div>
-  </div>
-</section>
-
 <section id="radar" class="screen" aria-label="Radar">
   <div class="section-head"><div><span class="eyebrow">ESCÁNER</span><h2>Radar</h2></div><span id="radarTs" class="pill warn">—</span></div>
   <div class="panel">
@@ -676,6 +644,7 @@ html[data-indie] .toast{border-left-color:var(--acento)}
 
 <section id="ia" class="screen" aria-label="IA">
   <div class="section-head"><div><span class="eyebrow">INTELIGENCIA</span><h2>IA y bitácora</h2></div><span id="iaModo" class="pill">—</span></div>
+  <div class="panel oculto" id="pmGlobal"></div>
   <div class="panel"><div class="panel-title"><span>Señales de la IA</span><span id="iaVivo" class="pill live"><i></i>EN VIVO</span></div><small id="iaCab" class="muted">—</small><div id="opiniones"><p class="empty">—</p></div></div>
   <div class="panel"><div class="panel-title"><span>Órdenes según la IA</span><span id="ordenesCuenta" class="pill">0</span></div><div id="ordenesIA"><p class="empty">—</p></div></div>
   <div class="panel"><div class="panel-title"><span>Historial de señales</span></div><div id="senalesHist"><p class="empty">—</p></div></div>
@@ -729,9 +698,6 @@ html[data-indie] .toast{border-left-color:var(--acento)}
 <section id="cartera" class="screen" aria-label="Cartera">
   <div class="section-head"><div><span class="eyebrow">PORTAFOLIO</span><h2>Cartera</h2></div></div>
   <div class="panel"><div class="panel-title"><span>Activos · barra = peso, marca = objetivo</span></div><div id="activos"><p class="empty">—</p></div></div>
-  <div class="panel oculto" id="predPanel"><div class="panel-title"><span>🎲 Predicciones · Hyperliquid</span><span id="predTotal" class="pill">—</span></div>
-    <div id="predLista"></div>
-    <small class="muted" style="display:block;margin-top:6px">Mercados de predicción de tu cuenta. Cada unidad paga 1 USDC si aciertas y 0 si no; el precio es la probabilidad que le da el mercado. TradIA solo los muestra: no los compra ni los vende.</small></div>
   <div class="panel"><div class="panel-title"><span>Operaciones</span><span id="opsCuenta" class="pill">0</span></div><div id="operaciones"><p class="empty">—</p></div></div>
 </section>
 
@@ -748,36 +714,6 @@ html[data-indie] .toast{border-left-color:var(--acento)}
     <div class="srch" style="margin-top:9px"><input id="repNuevo" placeholder="AGREGAR MONEDA" maxlength="12"><button id="repAgregar" class="small">AGREGAR</button></div>
   </div>
   <div class="panel"><div class="panel-title"><span>Parámetros</span></div><div id="params" class="form"></div></div>
-  <div class="panel" id="cfgPred">
-    <div class="panel-title"><span>🎲 Predicciones</span><span id="cfgPredPill" class="pill">—</span></div>
-    <p class="muted" style="margin:0;font-size:12px">Qué hace la IA con los mercados de predicción de Hyperliquid en cada ciclo de tu nube (solo con dinero real). Se guarda con su propio botón, aparte del resto de la estrategia.</p>
-    <div class="chips" id="cfgPiChips" style="margin-top:8px"><button data-pi="off">APAGADA</button><button data-pi="proponer">PROPONE · TÚ APRUEBAS</button><button data-pi="auto">EJECUTA SOLA</button></div>
-    <div class="form" style="margin-top:8px">
-      <label class="check"><input type="checkbox" id="cpCorto"> En «Ejecuta sola», la IA solo decide sola a corto plazo; lo de mediano y largo plazo solo lo propone</label>
-      <label>Corto plazo = vence en<small>horas o menos (1–168)</small><input id="cpCortoH" type="number" min="1" max="168" step="1" inputmode="numeric"></label>
-      <label>Si falta USDC para comprar una predicción<small>Hyperliquid solo acepta USDC en predicciones: TradIA puede vender justo lo que falta de HYPE antes de comprar (esa venta es spot: mínimo ~10 USDC, aunque la predicción sea de menos)</small></label>
-      <div class="chips" id="cfgPredPago"><button data-pp="">SOLO USDC</button><button data-pp="HYPE">VENDER HYPE LO NECESARIO</button></div>
-      <label>Mercados que revisa la IA</label>
-      <div class="chips" id="cfgPredCats"><button data-pc="cripto_hoy">₿ CRIPTO HOY</button><button data-pc="cripto_mediano">📅 CRIPTO MEDIANO PLAZO</button><button data-pc="bolsa">📈 BOLSA Y MATERIAS</button></div>
-      <div class="grid two">
-        <label>USDC por compra<small>Mínimo ~1 USDC en predicciones. Con menos USDC libre, la IA compra por lo que haya</small><input id="cpMonto" type="number" min="1" max="500" step="1" inputmode="decimal"></label>
-        <label>Tope total en predicciones<small>USDC, contando lo que ya tienes</small><input id="cpTope" type="number" min="1" max="5000" step="1" inputmode="decimal"></label>
-        <label>Compras por ciclo<small>1 a 5</small><input id="cpCiclo" type="number" min="1" max="5" step="1" inputmode="numeric"></label>
-        <label>Ventaja mínima<small>puntos: modelo − mercado</small><input id="cpVent" type="number" min="3" max="40" step="1" inputmode="decimal"></label>
-        <label>Confianza mínima de la IA<small>%</small><input id="cpConf" type="number" min="0" max="100" step="1" inputmode="numeric"></label>
-        <label>No entrar si faltan menos de<small>horas para vencer</small><input id="cpHoras" type="number" min="0" max="48" step="0.5" inputmode="decimal"></label>
-        <label>Probabilidad del lado desde<small>% (evita apuestas casi imposibles)</small><input id="cpPmin" type="number" min="1" max="50" step="1" inputmode="numeric"></label>
-        <label>…hasta<small>% (evita pagar casi 1 por poco)</small><input id="cpPmax" type="number" min="50" max="99" step="1" inputmode="numeric"></label>
-      </div>
-      <label class="check"><input type="checkbox" id="cpVender"> La IA también revisa mis posiciones y propone vender si las ve caras</label>
-      <label>Asegurar ganancia<small>vender sola mi posición si mi lado ya vale este % o más (0 = apagado; 50–99)</small><input id="cpGan" type="number" min="0" max="99" step="1" inputmode="numeric"></label>
-      <label class="check"><input type="checkbox" id="cpSuper"> 🧠 Supervisor IA: cada 6 h revisa cómo van y puede ajustar estos parámetros</label>
-      <small class="muted">El supervisor solo cambia ventaja, confianza, probabilidades, horas, compras por ciclo y mercados. El dinero (USDC por compra y tope) solo lo puede <b>bajar</b>, nunca subir de lo que pongas tú. Nunca cambia el modo ni activa dinero real. Cada cambio queda en el Historial y te avisa.</small>
-    </div>
-    <div id="cpSuperLog" style="margin-top:8px"></div>
-    <p id="cpResumen" class="notice" style="margin-top:8px"></p>
-    <div class="grid two" style="margin-top:8px"><button id="cpGuardar" class="primary">GUARDAR PREDICCIONES</button><button id="cpDefecto" class="small ghost">VALORES SUGERIDOS</button></div>
-  </div>
 </section>
 
 <section id="config" class="screen" aria-label="Config">
@@ -874,7 +810,6 @@ html[data-indie] .toast{border-left-color:var(--acento)}
 <nav class="nav" aria-label="Secciones">
   <button class="active simple-ok" data-target="panel">⌂<small>Panel</small></button>
   <button data-target="ordenes">⇅<small>Órdenes</small></button>
-  <button data-target="predicciones">🎲<small>Predicc.</small></button>
   <button data-target="radar">⌖<small>Radar</small></button>
   <button data-target="ia">◎<small>IA</small></button>
   <button data-target="cartera" class="simple-ok">◈<small>Cartera</small></button>
@@ -894,7 +829,6 @@ html[data-indie] .toast{border-left-color:var(--acento)}
     <div id="grafPos"></div>
     <div id="grafCuerpo"><p class="empty">Cargando velas…</p></div>
     <div class="grid two" id="grafAcc" style="margin-top:12px"><button id="grafOrden" class="primary">＋ CREAR ORDEN</button><button id="grafIA" class="secundario">✨ PEDIR A LA IA</button></div>
-    <div id="grafPredAcc" class="oculto"></div>
   </div>
 </div>
 <div id="grafTip"></div>
@@ -907,10 +841,10 @@ html[data-indie] .toast{border-left-color:var(--acento)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.0.0';
+var APP_VERSION='1.1.0';
 // Versión mínima del código de la nube que esta app necesita (runner/version.txt).
 // Solo sube cuando cambian runner/ o worker/: si no, el semáforo marcaría «nube vieja» sin motivo.
-var NUBE_MIN='1.0.0';
+var NUBE_MIN='1.1.0';
 var PLANTILLA='tradiabot/tradia-cloud';
 var NATIVO=window.AgenteNative||null;
 var $=function(id){return document.getElementById(id)};
@@ -984,7 +918,7 @@ function irA(id){
   document.querySelectorAll('.nav button').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-target')===id)});
   window.scrollTo(0,0);
   vista=id;
-  if(id==='radar')cargarRadar();if(id==='ia'){cargarBitacora();cargarSenales()}if(id==='ordenes')cargarOrdenes();if(id==='historial')cargarHistorial();if(id==='cartera')cargarOps();if(id==='estrategia')pintarEstrategia();if(id==='config')pintarConfig();if(id==='predicciones')cargarPM();
+  if(id==='radar')cargarRadar();if(id==='ia'){cargarBitacora();cargarSenales();cargarGlobal()}if(id==='ordenes')cargarOrdenes();if(id==='historial')cargarHistorial();if(id==='cartera')cargarOps();if(id==='estrategia')pintarEstrategia();if(id==='config')pintarConfig();if(id==='predicciones')cargarPM();
 }
 document.querySelectorAll('.nav button').forEach(function(b){b.onclick=function(){irA(b.getAttribute('data-target'))}});
 
@@ -1303,7 +1237,6 @@ $('instalar').onclick=function(){
   }).then(function(){instalando=false;$('instalar').disabled=false;$('resAtras').disabled=false});
 };
 
-
 // ================================================================ TUTORIAL
 var TUTO=[
  '<span class="tuto-num">1</span><span class="eyebrow">BIENVENIDA</span><h2>¿Qué es TradIA?</h2>'+
@@ -1388,8 +1321,6 @@ function pintarEstado(){
   else if(R.error){sr.className='notice warn';sr.innerHTML='<b>Saldo real en '+exN+'</b><br>No pude leerlo: '+esc(R.error)}
   else{
     var otros=Object.keys(R.saldos||{}).filter(function(k){return k!==u.quote&&!/^\+\d+$/.test(k)}).slice(0,4).map(function(k){return esc(k)+' '+num(R.saldos[k],4)}).join(' · ');
-    var nPred=(u.predicciones||[]).length||Object.keys(R.saldos||{}).filter(function(k){return /^\+\d+$/.test(k)}).length;
-    if(nPred)otros+=(otros?' · ':'')+'🎲 '+nPred+' predicci'+(nPred===1?'ón':'ones')+(u.valor_predicciones?' ≈ '+num(u.valor_predicciones,2)+' '+esc(u.quote||''):'')+' (en Cartera)';
     sr.className='notice'+(R.perps_usdc&&!R.libre?' warn':'');
     sr.innerHTML='<b>Saldo real en '+exN+'</b>: '+num(R.libre,2)+' '+esc(u.quote||'')+' libres'+
       (R.perps_usdc&&R.libre<1?'<br>'+num(R.perps_usdc,2)+' USDC en Perps: pásalos a Spot en Hyperliquid (Transfer → Perps a Spot) para que TradIA los use.':'')+
@@ -1417,50 +1348,8 @@ function pintarEstado(){
     var tap=a.simbolo!==u.quote&&!/^(USD|USDT|USDC|DAI|EUR)$/.test(a.simbolo);
     return '<div class="row'+(tap?' tap" data-graf="'+esc(a.simbolo)+'"':'"')+'><span class="info"><b>'+esc(a.simbolo)+'</b>'+(tap?' <span class="ver-g">📈 VER GRÁFICA</span>':'')+' <small>'+num(a.cantidad,6)+' · '+precio(a.precio)+(a.costo?' · costo '+precio(a.costo):'')+(costos[a.simbolo]&&costos[a.simbolo].estimado?' (estimado)':'')+'</small><div class="bar"><i style="width:'+Math.min(100,a.peso)+'%"></i>'+(obj?'<em style="left:'+Math.min(99,obj)+'%"></em>':'')+'</div></span><span style="text-align:right"><b>'+num(a.valor,2)+'</b><small class="'+clsPct(a.pnl)+'">'+(a.pnl!=null?pct(a.pnl):num(a.peso,1)+'%')+'</small></span></div>';
   }).join('')||'<p class="empty">Sin activos todavía.</p>';
-  pintarPredicciones(u);
   pintarSimple();
 }
-// Mercados de predicción (HIP-4) de la cuenta de Hyperliquid. Nubes < 1.5.2 solo
-// mandan los códigos «+N» dentro del saldo real: se avisa que hay que actualizar.
-function venceEn(ms){if(!ms)return '';var m=Math.round((ms-Date.now())/60000);if(m<=0)return 'vencido: se liquida solo';if(m<60)return 'vence en '+m+' min';if(m<2880)return 'vence en '+Math.round(m/60)+' h';return 'vence en '+Math.round(m/1440)+' días'}
-function pintarPredicciones(u){
-  var P=u.predicciones||[],viejos=Object.keys((u.real&&u.real.saldos)||{}).filter(function(k){return /^\+\d+$/.test(k)});
-  $('predPanel').classList.toggle('oculto',!P.length&&!viejos.length);
-  if(!P.length){$('predTotal').textContent=viejos.length;$('predLista').innerHTML=viejos.length?'<p class="notice warn">Tienes '+viejos.length+' posiciones en mercados de predicción ('+viejos.map(esc).join(', ')+'). Actualiza tu nube (Config → Actualizar nube) para verlas con nombre y valor.</p>':'';return}
-  $('predTotal').textContent=u.valor_predicciones!=null?num(u.valor_predicciones,2)+' '+(u.quote||''):P.length;
-  $('predLista').innerHTML=P.map(function(p){var pr=p.precio!=null?Math.round(p.precio*100):null,si=/^S/i.test(p.lado_nombre||'');
-    return '<div class="pred"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(p.pregunta)+'</b><span class="badge '+(si?'buy':'sell')+'">'+esc(String(p.lado_nombre||'').toUpperCase())+'</span></div>'+
-      '<small>'+num(p.cantidad,2)+' × '+(p.precio!=null?num(p.precio,3):'—')+' = <b>'+(p.valor!=null?num(p.valor,2)+' '+esc(p.quote||''):'sin precio')+'</b> · si aciertas cobras '+num(p.pago_si_acierta,2)+' '+esc(p.quote||'')+(p.vence?' · '+venceEn(p.vence)+' ('+hora(p.vence)+')':'')+'</small>'+
-      (pr!=null?'<div class="prob" title="Probabilidad según el mercado"><i style="width:'+pr+'%"></i></div><small class="muted">El mercado le da '+pr+'% a «'+esc(p.lado_nombre)+'»</small>':'')+
-      (p.vence&&p.vence<Date.now()?'':'<button class="small secundario" data-pia="'+esc(p.coin)+'" style="margin-top:8px;width:100%">✨ ANALIZAR CON IA</button>')+
-      '<div data-pres="'+esc(p.coin)+'">'+(predIA[p.coin]?htmlPredIA(predIA[p.coin],p):'')+'</div></div>'}).join('');
-}
-// La IA analiza la posición y SUGIERE; TradIA no ejecuta nada en estos mercados.
-var predIA={};
-var SUG_CLS={'MANTENER':'wait','VENDER':'sell','COMPRAR MÁS':'buy','COMPRAR':'buy','NO ENTRAR':'wait'};
-function htmlPredIA(a,p,sinGraf){
-  var m=a.mercado||{},pm_=m.prob_mercado_tu_lado_pct,ambos=a.mercado_id!=null,ls=ambos&&a.lado_sugerido!=null?(m.lados||[])[a.lado_sugerido]:null,lado=p.lado_nombre;
-  // Mercado completo: la probabilidad es la del lado sugerido (o la del primero si no entra).
-  if(ambos){var l0=ls||(m.lados||[])[0]||{};lado=l0.lado;pm_=l0.precio!=null?l0.precio*100:null}
-  var coinG=ambos?'#'+(a.mercado_id*10+(a.lado_sugerido||0)):String(a.coin||'').replace(/^\+/,'#');
-  return '<div class="notice" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>◎ La IA sugiere</b><span class="badge '+(SUG_CLS[a.sugerencia]||(/^COMPRAR/.test(a.sugerencia)?'buy':'wait'))+'">'+esc(a.sugerencia)+' · '+(a.confianza|0)+'%</span></div>'+
-    (a.prob_estimada!=null&&pm_!=null&&lado?'<small>Probabilidad de «'+esc(lado)+'»: IA <b>'+num(a.prob_estimada,0)+'%</b> vs mercado <b>'+num(pm_,1)+'%</b></small>':'')+
-    (m.precio_actual?'<small style="display:block">'+esc(m.subyacente)+' ahora '+precio(m.precio_actual)+(m.objetivo?' · objetivo '+precio(m.objetivo)+' ('+pct(m.distancia_al_objetivo_pct)+')':'')+(m.horas_para_vencer!=null?' · faltan '+num(m.horas_para_vencer,1)+' h':'')+'</small>':'')+
-    (m.movimiento_tipico_pct?'<small style="display:block">Se mueve ±'+num(m.movimiento_tipico_pct.h1,2)+'% en 1 h · ±'+num(m.movimiento_tipico_pct.h24,2)+'% en 24 h · ±'+num(m.movimiento_tipico_pct.h48,2)+'% en 48 h'+(m.regimen_volatilidad==='turbulento'?' · 🔥 turbulento':'')+'</small>':'')+
-    (a.global?'<small style="display:block">🌍 '+esc(a.global.resumen)+'</small>':'')+
-    '<p style="margin:6px 0 0">'+esc(a.analisis)+'</p>'+((a.riesgos||[]).length?'<small class="muted">Riesgos: '+a.riesgos.map(esc).join(' · ')+'</small>':'')+
-    (ls?'<button class="small primary" data-pcomprar="'+esc(coinG)+'" style="margin-top:8px;width:100%">COMPRAR «'+esc(String(ls.lado).toUpperCase())+'» COMO SUGIERE LA IA</button>':'')+
-    '<small class="muted" style="display:block;margin-top:6px">Es solo una sugerencia de '+esc(a.modelo||'la IA')+', no asesoría financiera. <b>Tú decides</b>: revisa las gráficas y, si quieres seguirla, compra o vende en la pestaña 🎲.</small>'+
-    (sinGraf?'':'<button class="small secundario" data-pgraf="'+esc(coinG)+'" style="margin-top:6px;width:100%">📈 VER GRÁFICAS PARA DECIDIR</button>')+'</div>';
-}
-document.addEventListener('click',function(e){
-  var b=e.target.closest('[data-pia]');if(!b)return;var coin=b.getAttribute('data-pia');
-  var p=((((datos.estado||{}).ultimo)||{}).predicciones||[]).filter(function(x){return x.coin===coin})[0]||{};
-  var box=(b.closest('.pred')||document).querySelector('[data-pres="'+coin+'"]');b.disabled=true;b.textContent='LA IA ESTÁ ANALIZANDO…';
-  api('/api/predicciones/analizar',{coin:coin}).then(function(a){predIA[coin]=a;box.innerHTML=htmlPredIA(a,p)})
-    .catch(function(er){box.innerHTML='<p class="notice warn" style="margin-top:8px">'+esc(er.status===404&&!(er.data&&er.data.error&&/ciclo/.test(er.data.error))?'Tu nube aún no analiza predicciones: actualiza tu nube (Config → Actualizar nube).':traduce(er))+'</p>'})
-    .then(function(){b.disabled=false;b.textContent='✨ VOLVER A ANALIZAR'});
-});
 // ---------------------------------------------------------------- Señales de la IA
 // Lo que la IA dijo en cada ciclo y qué pasó con cada orden. Se refresca cada
 // 30 s mientras la pestaña IA está abierta. Nubes viejas sin /api/senales:
@@ -1511,16 +1400,15 @@ setInterval(function(){if(!document.hidden&&vista==='ia'&&datos.estado)cargarSen
 var ORD_EST={propuesta:['PROPUESTA','wait'],aprobada:['APROBADA · EN COLA','buy'],ejecutando:['ENVIANDO AL EXCHANGE…','wait'],ejecutada:['EJECUTADA ✓','buy'],cancelada:['CANCELADA','off'],caducada:['CADUCADA','off'],error:['ERROR','sell']};
 var ORD_MODO={proponer:'La IA crea órdenes cuando su señal es fuerte (confianza ≥ tu mínimo) y esperan tu aprobación.',auto:'La IA crea y ejecuta órdenes sola, dentro de tus montos mínimo y máximo. Tú puedes editarlas o cancelarlas mientras estén en cola.',off:'La IA no crea órdenes. Solo se ejecutan las que tú crees (y las de tu estrategia automática).'};
 function cargarOrdenes(){
-  return api('/api/ordenes').then(function(d){datos.ordenes=d.ordenes||[];pintarOrdenes()}).catch(function(e){$('ordPend').innerHTML='<p class="empty">'+esc(e.status===404?'Tu nube aún no tiene órdenes: actualiza tu nube (Config).':traduce(e))+'</p>'});
+  return api('/api/ordenes').then(function(d){datos.ordenes=(d.ordenes||[]).filter(function(o){return o.tipo!=='prediccion'});pintarOrdenes()}).catch(function(e){$('ordPend').innerHTML='<p class="empty">'+esc(e.status===404?'Tu nube aún no tiene órdenes: actualiza tu nube (Config).':traduce(e))+'</p>'});
 }
 function descOrden(o){
   var q=esc(o.quote||(datos.config||{}).quote||'');
-  if(o.tipo==='prediccion')return num(o.unidades,0)+' u. a '+(o.accion==='COMPRAR'?'≤ ':'≥ ')+num(o.limite,4)+' · máx. '+num(o.unidades*o.limite,2)+' '+q+(o.accion==='COMPRAR'&&o.pagar_con&&o.pagar_con!=='USDC'?' · si falta USDC vende '+o.pagar_con:'');
   return (o.accion==='COMPRAR'?num(o.monto,2)+' '+q:o.pct+'% de tu '+esc(o.simbolo))+(o.limite?' · si '+(o.accion==='COMPRAR'?'≤ ':'≥ ')+precio(o.limite):' · a mercado');
 }
 function tarjetaOrden(o){
   var e=ORD_EST[o.estado]||[esc(o.estado),'off'],pend=o.estado==='propuesta'||o.estado==='aprobada',id=esc(o.id);
-  var h='<div class="card" data-oid="'+id+'"><div class="card-head"><span><b>'+(o.tipo==='prediccion'?'🎲 '+esc(o.etiqueta||o.coin):esc(o.simbolo))+'</b> <span class="badge '+(o.accion==='COMPRAR'?'buy':'sell')+'">'+esc(o.accion)+'</span> <span class="badge off">'+(o.origen==='ia'?'🤖 IA':'👤 TÚ')+'</span></span><span class="badge '+e[1]+'">'+e[0]+'</span></div>'+
+  var h='<div class="card" data-oid="'+id+'"><div class="card-head"><span><b>'+esc(o.simbolo)+'</b> <span class="badge '+(o.accion==='COMPRAR'?'buy':'sell')+'">'+esc(o.accion)+'</span> <span class="badge off">'+(o.origen==='ia'?'🤖 IA':'👤 TÚ')+'</span></span><span class="badge '+e[1]+'">'+e[0]+'</span></div>'+
     '<div style="margin-top:6px"><b>'+descOrden(o)+'</b>'+(o.permitir_perdida?' <small class="warn-text">· puede vender con pérdida</small>':'')+'</div>'+
     (o.razon?'<small style="display:block">'+esc(o.razon)+'</small>':'')+
     (o.ia&&o.ia.confianza!=null?'<small style="display:block">IA: '+esc(o.ia.accion)+' '+o.ia.confianza+'%</small>':'')+
@@ -1530,10 +1418,8 @@ function tarjetaOrden(o){
     (o.resultado?'<small class="up" style="display:block">✔ '+num(o.resultado.total,2)+' a '+precio(o.resultado.precio)+(o.resultado.ts?' · '+hora(o.resultado.ts):'')+'</small>':'')+
     '<small class="muted" style="display:block">'+hora(o.ts)+(pend&&o.vence?' · caduca '+hora(o.vence):'')+'</small>'+
     ((o.historia||[]).length?'<details><summary class="muted" style="font-size:11px;cursor:pointer">Cambios ('+o.historia.length+')</summary>'+o.historia.slice().reverse().map(function(x){return '<small style="display:block">'+(x.quien==='ia'?'🤖':x.quien==='usuario'?'👤':'☁️')+' '+hora(x.ts)+' · '+esc(x.texto)+'</small>'}).join('')+'</details>':'');
-  if(o.tipo==='prediccion'&&o.estado==='error')h+='<button class="small primary" data-reint="'+id+'" style="margin-top:9px;width:100%">↻ REINTENTAR CON PRECIO ACTUAL</button>';
   if(pend){
-    if(o.tipo==='prediccion')h+='<div class="grid two" style="margin-top:9px">'+(o.estado==='propuesta'?'<button class="small primary" data-oa="aprobar">✔ APROBAR</button>':'<button class="small primary" data-ya="1">⚡ EJECUTAR YA</button>')+'<button class="small danger" data-oa="cancelar">✖ CANCELAR</button><button class="small" data-pedit="'+id+'">✎ EDITAR</button><button class="small" data-pgraf="'+esc(o.coin)+'">📈 GRÁFICAS</button></div>';
-    else h+='<div class="grid two" style="margin-top:9px">'+(o.estado==='propuesta'?'<button class="small primary" data-oa="aprobar">✔ APROBAR</button>':'<button class="small" disabled>EN COLA</button>')+'<button class="small danger" data-oa="cancelar">✖ CANCELAR</button><button class="small" data-oa="editar">✎ EDITAR</button><button class="small" data-oa="conia">✨ EDITAR CON IA</button></div>'+
+    h+='<div class="grid two" style="margin-top:9px">'+(o.estado==='propuesta'?'<button class="small primary" data-oa="aprobar">✔ APROBAR</button>':'<button class="small" disabled>EN COLA</button>')+'<button class="small danger" data-oa="cancelar">✖ CANCELAR</button><button class="small" data-oa="editar">✎ EDITAR</button><button class="small" data-oa="conia">✨ EDITAR CON IA</button></div>'+
       '<div class="form oculto" data-of="editar" style="margin-top:8px"><div class="grid two"><label>'+(o.accion==='COMPRAR'?'Monto':'% a vender')+'<input data-ec="cant" type="number" step="any" value="'+(o.accion==='COMPRAR'?o.monto:o.pct)+'"></label><label>Precio límite<input data-ec="lim" type="number" step="any" value="'+(o.limite||'')+'" placeholder="a mercado"></label></div>'+
       (o.accion==='VENDER'?'<label style="display:flex;gap:8px;align-items:center;font-weight:400"><input data-ec="perd" type="checkbox" style="width:auto"'+(o.permitir_perdida?' checked':'')+'> Vender aunque sea con pérdida</label>':'')+
       '<button class="small primary" data-oa="guardar">GUARDAR CAMBIOS</button></div>'+
@@ -1589,7 +1475,7 @@ function clickOrden(e){
   }
 }
 $('ordenes').addEventListener('click',clickOrden);
-$('pmOrd').addEventListener('click',clickOrden);
+
 setInterval(function(){if(!document.hidden&&vista==='ordenes'&&datos.estado&&!document.querySelector('#ordenes [data-of]:not(.oculto)'))cargarOrdenes()},30000);
 
 // ---------------------------------------------------------------- Historial
@@ -1753,7 +1639,6 @@ var PERFILES={
 };
 var borrador=null;
 function pintarEstrategia(){
-  pintarCfgPred(!cpEditado);
   var c=datos.config;if(!c){$('params').innerHTML='<p class="empty">Conecta tu nube primero.</p>';return}
   if(!borrador)borrador=JSON.parse(JSON.stringify(c));
   pintarReparto();
@@ -1790,7 +1675,6 @@ $('estGuardar').onclick=function(){
 
 // ---------------------------------------------------------------- Config
 function pintarConfig(){
-  pintarCfgPred(!cpEditado);
   cargarIP();
   aplicarTema(S.tema);
   var c=datos.config||{},real=c.modo==='real';
@@ -1873,7 +1757,6 @@ $('actualizarNube').onclick=function(){
 $('olvidarGh').onclick=function(){if(S.gh){delete S.gh.token;guardarS();pintarConfig();toast('Token de GitHub borrado de este teléfono')}};
 $('olvidarTodo').onclick=function(){confirmar('Desconectar','Borra de este teléfono la conexión, el token y tus preferencias. Tu nube sigue funcionando.','DESCONECTAR').then(function(ok){if(!ok)return;if(NATIVO&&NATIVO.desactivar)NATIVO.desactivar();var t=S.tema;S={tema:t};guardarS();location.reload()})};
 
-
 // ---------------------------------------------------------------- Donaciones
 function copiarTexto(t,ok){
   if(NATIVO&&NATIVO.copiar){NATIVO.copiar(t);toast(ok);return}
@@ -1911,229 +1794,6 @@ window.onAvisosNativos=function(est){
 };
 function avisosListos(){pintarAvisos();api('/api/avisos/probar',{}).then(function(){NATIVO.revisarAhora();toast('¡Listo! Te llegará un aviso de prueba')}).catch(function(e){toast(traduce(e),true)})}
 $('avisosProbar').onclick=function(){NATIVO&&NATIVO.probar('TradIA Cloud ☁️','Así se verán tus avisos.')};
-
-// ---------------------------------------------------------------- Predicciones (BETA)
-// Explorar mercados de predicción de Hyperliquid, comprar un lado, vender tus
-// posiciones y analizarlos con IA. Las órdenes las ejecuta el ciclo de tu nube
-// (las claves nunca salen de GitHub); «Ejecutar ya» lanza un ciclo al momento.
-var pm={mercados:null,filtro:'cripto_hoy',ts:0,cuenta:{}};
-var PM_CAT={cripto_hoy:'₿ CRIPTO HOY',cripto_mediano:'📅 CRIPTO MEDIANO PLAZO',bolsa:'📈 BOLSA Y MATERIAS',economia:'🏛 ECONOMÍA Y EMPRESAS',ventaja:'⚖ CON VENTAJA',todo:'TODO'};
-function catPM(m){return m.categoria==='cripto'?'cripto_'+m.plazo:m.categoria}
-function cargarPM(forzar){
-  pintarPM();
-  var u=((datos.estado||{}).ultimo)||{},c=datos.config||{};
-  var aviso=c.modo!=='real'?'Las predicciones solo se operan con DINERO REAL (Config → Modo de operación). Puedes explorar y analizar igual.':u.exchange&&u.exchange!=='hyperliquid'?'Tu exchange es '+u.exchange+': las predicciones solo existen en Hyperliquid.':'';
-  $('pmAviso').textContent=aviso;$('pmAviso').classList.toggle('oculto',!aviso);
-  var p1=api('/api/ordenes').then(function(d){datos.ordenes=d.ordenes||[];pintarPM()}).catch(function(){});
-  if(!forzar&&pm.mercados&&Date.now()-pm.ts<60000)return p1;
-  $('pmTs').textContent='CARGANDO';
-  return Promise.all([p1,api('/api/predicciones/mercados').then(function(d){pm.mercados=d.mercados||[];pm.cuenta=d.cuenta||{};pm.ts=Date.now();pm.global=d.global||null;pintarGlobal(pm.global);$('pmTs').textContent=(d.total||pm.mercados.length)+' ABIERTOS';pintarPM()})
-    .catch(function(e){$('pmTs').textContent='ERROR';$('pmLista').innerHTML='<p class="notice warn">'+esc(e.status===404?'Tu nube aún no tiene esta función: Config → «Actualizar nube».':traduce(e))+'</p>'})]);
-}
-var PM_IA_TXT={off:'La IA no revisa predicciones en los ciclos. Tú exploras, analizas y operas.',
-  proponer:'En cada ciclo (cada 30 min) la IA revisa los mercados con señal fuerte, al lado «Sí» o al «No», y tus posiciones (mantener, vender o comprar más). Si ve una oportunidad te deja una orden «propuesta» en «Órdenes de predicción» para que la apruebes o la canceles. No mueve dinero sin ti.',
-  auto:'En cada ciclo la IA entra sola en posiciones con señal fuerte («Sí» o «No»), y mantiene, vende o compra más de las tuyas según su señal, al mejor precio real del libro. ⚠ Dinero real.'};
-// En modo auto el texto del panel dice qué plazo ejecuta sola (lo demás lo propone).
-function pintarPMIA(){
-  var c=datos.config||{},m=c.pred_ia||'proponer',u=((datos.estado||{}).ultimo)||{},r=u.pred_ia;
-  document.querySelectorAll('#pmIaChips [data-pi]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-pi')===m)});
-  $('pmIaModo').textContent={off:'APAGADA',proponer:'PROPONE',auto:'AUTOMÁTICA'}[m];$('pmIaModo').className='pill '+(m==='auto'?'bad':'');
-  $('pmIaTxt').textContent=PM_IA_TXT[m]+(m!=='off'?' '+resumenPred(c):'')+(c.ia==='off'&&m!=='off'?' (Ahora la IA está apagada en Estrategia: no revisará nada.)':'');
-  var h='';
-  if(m==='off')h='';
-  else if(!r)h='<p class="empty">Aún sin revisión de la IA: aparece tras el próximo ciclo. Necesita dinero real y Hyperliquid.</p>';
-  else{
-    h='<small class="muted">Último ciclo ('+hace(r.ts)+'): revisó '+(r.revisados|0)+' mercados de precio; '+(r.candidatos|0)+' con ventaja y '+(r.posiciones|0)+' posiciones tuyas'+(r.modelo?' · '+esc(r.modelo):'')+'.</small>';
-    h+=(r.opiniones||[]).map(function(o){return '<div class="row" style="padding:6px 0"><span class="info"><b>'+esc(o.pregunta)+' · '+esc(o.lado)+'</b><small>'+esc(o.razon||'')+(o.prob!=null?' · IA '+num(o.prob,0)+'%':'')+'</small></span><span class="badge '+claseAcc(o.accion)+'">'+esc(o.accion)+' '+(o.confianza|0)+'%</span></div>'}).join('')||'<p class="empty" style="margin:6px 0 0">Nada con ventaja suficiente en este ciclo: la IA no propuso nada.</p>';
-  }
-  var sl=(c.pred_supervisor_log||[])[0];
-  if(sl&&m!=='off')h+='<p class="notice" style="margin-top:8px">🧠 Supervisor IA ('+esc(hace(sl.ts))+'): '+(sl.cambios||[]).map(function(x){return esc(NOM_PRED[x.k]||x.k)+' → <b>'+esc(fmtPred(x.despues))+'</b>'}).join(' · ')+'<br><small>'+esc(sl.razon||'')+'</small></p>';
-  $('pmIaUlt').innerHTML=h;
-}
-function guardarPMIA(cambios,ok){
-  return api('/api/config',cambios).then(function(r){datos.config=r.config||datos.config;if(datos.estado)datos.estado.config=datos.config;pintarPMIA();pintarCfgPred();toast(ok||'Guardado');return true}).catch(function(e){toast(traduce(e),true);return false});
-}
-// ---- Config → 🎲 Predicciones
-var PRED_DEF={pred_pagar_con:'',pred_auto_solo_corto:true,pred_corto_horas:36,pred_supervisor:true,pred_monto:11,pred_max_total:30,pred_max_ciclo:1,pred_ventaja:8,pred_conf_min:65,pred_horas_min:1,pred_prob_min:5,pred_prob_max:95,pred_tomar_ganancia:0,pred_vender_ia:true,pred_categorias:['cripto_hoy']};
-var CP_CAMPOS={cpCortoH:'pred_corto_horas',cpMonto:'pred_monto',cpTope:'pred_max_total',cpCiclo:'pred_max_ciclo',cpVent:'pred_ventaja',cpConf:'pred_conf_min',cpHoras:'pred_horas_min',cpPmin:'pred_prob_min',cpPmax:'pred_prob_max',cpGan:'pred_tomar_ganancia'};
-function vPred(c,k){return c[k]!=null?c[k]:PRED_DEF[k]}
-function resumenPred(c){var cats=vPred(c,'pred_categorias');
-  return 'Revisa '+(cats.length?cats.map(function(k){return PM_CAT[k].replace(/^\S+ /,'').toLowerCase()}).join(', '):'ningún mercado')+'. Compra '+num(vPred(c,'pred_monto'),0)+' USDC cada vez (máx. '+vPred(c,'pred_max_ciclo')+' por ciclo), sin pasar de '+num(vPred(c,'pred_max_total'),0)+' USDC en predicciones, solo si el modelo ve ≥ '+num(vPred(c,'pred_ventaja'),0)+' puntos de ventaja, el lado vale entre '+vPred(c,'pred_prob_min')+'% y '+vPred(c,'pred_prob_max')+'%, faltan ≥ '+num(vPred(c,'pred_horas_min'),1)+' h y la IA está de acuerdo (confianza ≥ '+vPred(c,'pred_conf_min')+'%).'+
-    (vPred(c,'pred_vender_ia')?' También revisa tus posiciones (mantener, vender o comprar más).':'')+((c.pred_ia||(datos.config||{}).pred_ia||'proponer')==='auto'?(vPred(c,'pred_auto_solo_corto')?' Ejecuta sola solo lo que vence en ≤ '+num(vPred(c,'pred_corto_horas'),0)+' h; lo de mediano y largo plazo te lo propone.':' Ejecuta sola en cualquier plazo.'):'')+(vPred(c,'pred_pagar_con')?' Si falta USDC, vende el '+vPred(c,'pred_pagar_con')+' justo para pagar.':'')+(vPred(c,'pred_supervisor')?' El supervisor IA puede ajustar estos valores cada 6 h.':'')+(vPred(c,'pred_tomar_ganancia')>0?' Vende solo si tu lado ya vale ≥ '+vPred(c,'pred_tomar_ganancia')+'%.':'');
-}
-var cpCats=null,cpEditado=false,cpPago='';
-function pintarCfgPred(forzar){
-  if(!$('cfgPred'))return;var c=datos.config||{},m=c.pred_ia||'proponer';
-  document.querySelectorAll('#cfgPiChips [data-pi]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-pi')===m)});
-  $('cfgPredPill').textContent={off:'APAGADA',proponer:'PROPONE',auto:'AUTOMÁTICA'}[m];$('cfgPredPill').className='pill '+(m==='auto'?'bad':'');
-  if(forzar||cpCats===null){cpCats=vPred(c,'pred_categorias').slice();cpPago=vPred(c,'pred_pagar_con')||'';
-    Object.keys(CP_CAMPOS).forEach(function(id){$(id).value=vPred(c,CP_CAMPOS[id])});$('cpVender').checked=!!vPred(c,'pred_vender_ia');$('cpSuper').checked=!!vPred(c,'pred_supervisor');$('cpCorto').checked=!!vPred(c,'pred_auto_solo_corto')}
-  var lg=c.pred_supervisor_log||[];
-  $('cpSuperLog').innerHTML=lg.length?'<b style="font-size:12px">🧠 Últimos ajustes del supervisor</b>'+lg.slice(0,4).map(function(x){return '<div class="row" style="padding:5px 0"><span class="info"><small>'+esc(hace(x.ts))+' · '+(x.cambios||[]).map(function(h){return esc(NOM_PRED[h.k]||h.k)+' '+esc(fmtPred(h.antes))+' → <b>'+esc(fmtPred(h.despues))+'</b>'}).join(' · ')+'</small><small class="muted">'+esc(x.razon||'')+'</small></span></div>'}).join(''):'<small class="muted">El supervisor aún no ha cambiado nada.</small>';
-  document.querySelectorAll('#cfgPredPago [data-pp]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-pp')===cpPago)});
-  document.querySelectorAll('#cfgPredCats [data-pc]').forEach(function(b){b.classList.toggle('active',cpCats.indexOf(b.getAttribute('data-pc'))>=0)});
-  $('cpResumen').textContent=resumenPred(leerCfgPred());
-}
-var NOM_PRED={pred_ventaja:'Ventaja mínima',pred_conf_min:'Confianza mínima',pred_prob_min:'Prob. desde',pred_prob_max:'Prob. hasta',pred_horas_min:'Horas mínimas',pred_max_ciclo:'Compras por ciclo',pred_monto:'USDC por compra',pred_max_total:'Tope total',pred_categorias:'Mercados'};
-function fmtPred(v){return Array.isArray(v)?v.map(function(k){return (PM_CAT[k]||k).replace(/^\S+ /,'').toLowerCase()}).join(', '):String(v)}
-function leerCfgPred(){var o={pred_categorias:(cpCats||[]).slice(),pred_vender_ia:$('cpVender').checked,pred_supervisor:$('cpSuper').checked,pred_auto_solo_corto:$('cpCorto').checked,pred_pagar_con:cpPago};Object.keys(CP_CAMPOS).forEach(function(id){o[CP_CAMPOS[id]]=Number($(id).value)});return o}
-$('cfgPredPago').onclick=function(e){var b=e.target.closest('[data-pp]');if(!b)return;cpPago=b.getAttribute('data-pp');cpEditado=true;pintarCfgPred()};
-$('cfgPredCats').onclick=function(e){var b=e.target.closest('[data-pc]');if(!b)return;var k=b.getAttribute('data-pc'),i=cpCats.indexOf(k);if(i>=0)cpCats.splice(i,1);else cpCats.push(k);cpEditado=true;pintarCfgPred()};
-$('cfgPred').addEventListener('input',function(){cpEditado=true;$('cpResumen').textContent=resumenPred(leerCfgPred())});
-$('cpGuardar').onclick=function(){guardarPMIA(leerCfgPred(),'Ajustes de predicciones guardados').then(function(ok){if(ok){cpEditado=false;pintarCfgPred(true)}})};
-$('cpDefecto').onclick=function(){cpCats=PRED_DEF.pred_categorias.slice();Object.keys(CP_CAMPOS).forEach(function(id){$(id).value=PRED_DEF[CP_CAMPOS[id]]});$('cpVender').checked=true;$('cpSuper').checked=true;$('cpCorto').checked=true;cpPago='';cpEditado=true;pintarCfgPred();toast('Valores sugeridos: toca GUARDAR')};
-$('cfgPiChips').onclick=function(e){$('pmIaChips').onclick(e)};
-$('pmIaChips').onclick=function(e){
-  var b=e.target.closest('[data-pi]');if(!b)return;var m=b.getAttribute('data-pi'),c=datos.config||{};
-  if(m==='auto')confirmar('La IA operará predicciones sola',(vPred(c,'pred_auto_solo_corto')?'Solo a corto plazo (mercados que vencen en ≤ '+num(vPred(c,'pred_corto_horas'),0)+' h); lo de mediano y largo plazo te lo seguirá proponiendo. ':'')+'En cada ciclo la IA podrá comprar hasta '+num(c.pred_monto||11,0)+' USDC (máx. 1 compra por ciclo y '+num(c.pred_max_total||30,0)+' USDC en total) y vender tus posiciones de predicción sin pedirte permiso.'+(c.modo==='real'?' ⚠ Es DINERO REAL.':' Solo funciona en dinero real.')+' Puedes volver a «Propone» cuando quieras.','ACTIVAR').then(function(ok){if(ok)guardarPMIA({pred_ia:m},'La IA ejecutará sola')});
-  else guardarPMIA({pred_ia:m});
-};
-$('pmIaAjustes').onclick=function(){irA('estrategia');setTimeout(function(){var el=$('cfgPred');if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'})},60)};
-function pintarPM(){
-  if(!$('pmLista'))return;
-  pintarPMIA();
-  var u=((datos.estado||{}).ultimo)||{},mias=u.predicciones||[];
-  $('pmMiasN').textContent=mias.length;
-  $('pmMias').innerHTML=mias.map(function(p){var cod=String(p.coin).slice(1);
-    return '<div class="pred"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(p.pregunta)+'</b><span class="badge '+(/^S/i.test(p.lado_nombre)?'buy':'sell')+'">'+esc(String(p.lado_nombre).toUpperCase())+'</span></div>'+
-      '<small>'+num(p.cantidad,2)+' u. × '+(p.precio!=null?num(p.precio,3):'—')+' = <b>'+(p.valor!=null?num(p.valor,2):'—')+' '+esc(p.quote||'')+'</b>'+(p.vence?' · '+venceEn(p.vence):'')+'</small>'+
-      (p.costo?'<small style="display:block">Pagaste '+num(p.costo,4)+' por unidad · <b class="'+clsPct(p.pnl_pct)+'">'+(p.pnl_pct!=null?pct(p.pnl_pct):'—')+'</b> · sin pérdida desde <b>'+num(p.min_venta,4)+'</b>'+htmlCreador(p)+'</small>':'<small class="muted" style="display:block">Aún no sé a cuánto la compraste (aparece en el próximo ciclo): la IA no la vende mientras tanto.</small>')+
-      '<div class="grid two" style="margin-top:7px"><button class="small danger" data-pmv="'+esc(cod)+'">VENDER</button><button class="small secundario" data-pia="'+esc(p.coin)+'">✨ IA</button></div><button class="small ghost" data-pgraf="#'+esc(cod)+'" style="margin-top:6px;width:100%">📈 GRÁFICAS</button><div data-pres="'+esc(p.coin)+'"></div></div>'}).join('')||'<p class="empty">No tienes posiciones abiertas.</p>';
-  var ords=(datos.ordenes||[]).filter(function(o){return o.tipo==='prediccion'});
-  $('pmOrdN').textContent=ords.filter(function(o){return o.estado==='propuesta'||o.estado==='aprobada'}).length;
-  $('pmOrd').innerHTML=ords.slice(0,10).map(tarjetaOrden).join('')||'<p class="empty">Aún no hay órdenes de predicción.</p>';
-  document.querySelectorAll('#pmFiltro [data-pf]').forEach(function(b){var k=b.getAttribute('data-pf');b.classList.toggle('active',k===pm.filtro);b.textContent=PM_CAT[k]+(pm.cuenta[k]?' · '+pm.cuenta[k]:'')});
-  if(!pm.mercados)return;
-  var q=($('pmBuscar').value||'').trim().toLowerCase();
-  var l=pm.mercados.filter(function(m){
-    if(q)return m.pregunta.toLowerCase().indexOf(q)>=0;
-    if(pm.filtro==='ventaja')return m.lados.some(function(x){return x.ventaja>=3});
-    return pm.filtro==='todo'||catPM(m)===pm.filtro;
-  });
-  if(pm.filtro==='ventaja')l.sort(function(a,b){return Math.max.apply(null,b.lados.map(function(x){return x.ventaja||-99}))-Math.max.apply(null,a.lados.map(function(x){return x.ventaja||-99}))});
-  $('pmLista').innerHTML=l.slice(0,60).map(function(m){
-    return '<div class="card" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><b>'+esc(m.pregunta)+'</b><button class="small ghost" data-pgraf="'+esc(m.lados[0].coin)+'" title="Gráficas">📈</button></div><small class="muted" style="display:block">'+(m.vence?venceEn(m.vence)+' · '+hora(m.vence):'sin fecha')+(m.precio_actual?' · '+esc(m.nombre_sub||m.subyacente)+' ahora '+precio(m.precio_actual)+(m.distancia_pct!=null?' ('+pct(m.distancia_pct)+')':''):'')+(m.prob_modelo!=null?' · modelo Sí '+num(m.prob_modelo,1)+'%':'')+(m.mov?' · se mueve ±'+num(m.mov.h24,1)+'% en 24 h':'')+(m.regimen==='turbulento'?' · <b class="warn-text">🔥 turbulento</b>':'')+(m.sin_ofertas?' · <b class="warn-text">sin ofertas</b>':'')+htmlCreador(m)+'</small>'+(m.regla?'<small class="muted" style="display:block">'+esc(m.regla)+'</small>':'')+
-      '<div class="grid two" style="margin-top:8px">'+m.lados.map(function(x,i){
-        return '<div class="metric"><span>'+esc(x.nombre)+' · '+(x.precio!=null?Math.round(x.precio*100)+'%':'—')+'</span><b>'+(x.precio!=null?num(x.precio,3):'—')+'</b>'+(x.ventaja!=null?'<small class="'+(x.ventaja>=3?'up':x.ventaja<=-3?'down':'muted')+'">ventaja '+(x.ventaja>0?'+':'')+num(x.ventaja,1)+'</small>':'')+
-          '<button class="small primary" data-pmc="'+m.mercado+':'+i+'"'+(x.precio==null?' disabled':'')+' style="margin-top:6px;width:100%">COMPRAR «'+esc(String(x.nombre).toUpperCase())+'»</button></div>'}).join('')+'</div>'+
-      '<button class="small secundario" data-pmia="'+m.mercado+'" style="margin-top:8px;width:100%">✨ ANALIZAR CON IA</button>'+
-      '<div data-pmres="'+m.mercado+'"></div></div>'}).join('')||'<p class="empty">Nada con ese filtro.</p>';
-}
-// El límite por defecto es el mejor precio real del libro en este momento (no el
-// precio medio): si compras, el vendedor más barato; si vendes, el mejor comprador.
-var pmLibro=null;
-// Lo que tienes para pagar: USDC libres y la moneda que puede venderse si falta (HYPE).
-function fondosPM(){
-  var u=((datos.estado||{}).ultimo)||{},real=u.real||{},sal=real.saldos||{},a=(u.activos||[]).filter(function(x){return x.simbolo==='HYPE'})[0];
-  var usdc=u.modo==='real'&&u.libre!=null?u.libre:real.libre!=null?real.libre:null;
-  return {usdc:usdc,hype:a?a.cantidad:sal.HYPE!=null?Number(sal.HYPE):null,precioHype:a?a.precio:null};
-}
-// Venta: lo que pagaste por unidad y desde qué precio no hay pérdida (comisión incluida).
-var pmMin=null,pmCosto=null;
-function formPM(compra,precioRef,maxU,libro,fijo){
-  pmLibro=libro||null;var mejor=libro&&(compra?libro.mejor_venta:libro.mejor_compra);
-  var lim=fijo&&fijo.limite!=null?fijo.limite:mejor?mejor.precio:Math.min(0.999,Math.max(0.001,Math.round((compra?precioRef+0.02:precioRef-0.02)*1000)/1000));
-  var hype=fijo&&fijo.pagar_con?fijo.pagar_con==='HYPE':((datos.config||{}).pred_pagar_con||'')==='HYPE';
-  return '<div class="form" style="margin-top:10px"><label>Unidades (enteras)<input id="pmU" type="number" min="1" step="1" inputmode="numeric" value="'+(maxU||Math.max(1,Math.ceil(10/Math.max(lim,0.01))))+'"></label>'+
-    (libro?'<p class="notice" style="margin:0">Ahora en Hyperliquid: '+(libro.mejor_compra?'compran a <b>'+libro.mejor_compra.precio+'</b> ('+num(libro.mejor_compra.unidades,0)+' u.)':'nadie compra')+' · '+(libro.mejor_venta?'venden a <b>'+libro.mejor_venta.precio+'</b> ('+num(libro.mejor_venta.unidades,0)+' u.)':'nadie vende')+'</p>':'<p class="notice warn" style="margin:0">No pude leer el libro en vivo: el precio sugerido es aproximado.</p>')+
-    '<label>Precio límite <small>(0.001–0.999; '+(compra?'pagas como máximo esto':'recibes como mínimo esto')+')</small><input id="pmL" type="number" min="0.001" max="0.999" step="any" inputmode="decimal" value="'+lim+'"></label>'+
-    (!compra&&pmMin?'<label class="check"><input type="checkbox" id="pmPerdida"> Vender aunque sea con pérdida (solo si lo decides tú)</label>':'')+
-    (compra?'<label class="check"><input type="checkbox" id="pmHype"'+(hype?' checked':'')+'> Si no alcanza el USDC, vender HYPE para pagar (solo lo que falte)</label>':'')+
-    '<p id="pmCalc" class="notice" style="margin-top:4px"></p></div>';
-}
-function calcPM(compra){var u=Math.floor(Number($('pmU').value)||0),l=Number($('pmL').value)||0,t=u*l,mejor=pmLibro&&(compra?pmLibro.mejor_venta:pmLibro.mejor_compra);
-  var avisoL=!pmLibro?'':!mejor?'<br><span class="warn-text">⚠ Ahora no hay '+(compra?'vendedores':'compradores')+': la orden no se llenará.</span>':(compra?l<mejor.precio:l>mejor.precio)?'<br><span class="warn-text">⚠ Con este límite no se llena ahora: '+(compra?'el más barato vende a ':'el mejor comprador paga ')+mejor.precio+'. Usa '+mejor.precio+(compra?' o más.':' o menos.')+'</span>':u>mejor.unidades?'<br><span class="warn-text">Solo hay '+num(mejor.unidades,0)+' u. a ese precio: el resto se llena a peor precio dentro de tu límite, o se cancela.</span>':'';
-  var F=fondosPM(),conH=compra&&$('pmHype')&&$('pmHype').checked,pago='';
-  if(compra&&F.usdc!=null&&t>F.usdc){var falta=t-F.usdc,vende=Math.max(falta*1.02+0.05,10.5);
-    pago=conH?(F.precioHype?'<br>Tienes '+num(F.usdc,2)+' USDC: se venderán ~<b>'+num(vende/F.precioHype,3)+' HYPE</b> (≈'+num(vende,2)+' USDC'+(vende>falta*1.05?', mínimo de Hyperliquid':'')+') justo antes de comprar.'+(F.hype!=null&&F.hype*F.precioHype<vende?'<br><span class="warn-text">⚠ Solo tienes '+num(F.hype,3)+' HYPE: no alcanza.</span>':''):'<br>Se venderá el HYPE que falte ('+num(falta,2)+' USDC + margen).')
-      :'<br><span class="warn-text">⚠ Solo tienes '+num(F.usdc,2)+' USDC libres. Marca «vender HYPE» o baja las unidades.</span>'}
-  if(!compra&&pmMin)pago+=l>=pmMin?'<br><span class="up">✔ Sin pérdida: la compraste a '+num(pmCosto,4)+'.</span>':'<br><span class="warn-text">⚠ Con este límite vendes con pérdida: la compraste a '+num(pmCosto,4)+' y sin pérdida es desde <b>'+pmMin+'</b> (comisión incluida). TradIA no la ejecuta salvo que marques «vender aunque sea con pérdida».</span>';
-  $('pmCalc').innerHTML=(compra?'Pagas como máximo <b>'+num(t,2)+' USDC</b>. Si aciertas cobras <b>'+num(u,0)+' USDC</b>.':'Recibes al menos <b>'+num(t,2)+' USDC</b>.')+pago+(t<1?'<br><span class="warn-text">En predicciones Hyperliquid pide mínimo ~1 USDC por orden.</span>':'')+avisoL+'<br><small>Se ejecuta en el próximo ciclo (o al instante con «Ejecutar ya»), a ese precio o mejor; lo que no se llene se cancela.</small>'}
-function ordenPM(orden){
-  return api('/api/ordenes',{accion:'crear',orden:orden}).then(function(r){
-    toast('Orden creada');cargarPM();
-    return confirmar('¿Ejecutar ya?','Lanzo un ciclo de tu nube ahora (1-2 min) para enviar la orden a Hyperliquid. Si no, se envía en el próximo ciclo automático (hasta 30 min).','EJECUTAR YA').then(function(ok){if(ok)ejecutarYa()});
-  }).catch(function(e){toast(traduce(e),true)});
-}
-function ejecutarYa(){
-  if(S.demo){toast('En demo no hay nube real');return}
-  if(!S.gh||!S.gh.token){toast('Necesitas tu token de GitHub: Config → Cambiar claves',true);return}
-  var desde=Date.now();toast('Lanzando ciclo…');
-  lanzarWorkflow(S.gh.owner,S.gh.repo,'ciclo.yml',S.gh.rama||'main').then(function(){return esperarRun(S.gh.owner,S.gh.repo,'ciclo.yml',desde,{},null,'Ciclo')})
-    .then(function(){return cargarEstado()}).then(function(){toast('Ciclo terminado: revisa tus órdenes');cargarPM(true)}).catch(function(e){toast(traduce(e),true)});
-}
-document.addEventListener('click',function(e){
-  var b=e.target.closest('[data-pmc],[data-pmv],[data-pmia],[data-ya],[data-reint]');if(!b)return;
-  if(b.hasAttribute('data-reint')){var oe=(datos.ordenes||[]).filter(function(x){return x.id===b.getAttribute('data-reint')})[0];if(!oe)return;
-    abrirFormPM({coin:oe.coin,compra:oe.accion==='COMPRAR',etiqueta:oe.etiqueta||oe.coin,titulo:(oe.accion==='COMPRAR'?'Comprar':'Vender')+' de nuevo',texto:(oe.etiqueta||oe.coin)+'\nLa orden anterior no se llenó: aquí tienes el precio real de ahora.',unidades:oe.unidades,precioRef:oe.limite});return}
-  if(b.hasAttribute('data-ya')){ejecutarYa();return}
-  if(b.hasAttribute('data-pmia')){var k=b.getAttribute('data-pmia'),box=document.querySelector('[data-pmres="'+k+'"]');
-    b.disabled=true;box.innerHTML='<p class="empty">La IA está analizando el mercado…</p>';
-    api('/api/predicciones/analizar',{mercado:Number(k)}).then(function(a){box.innerHTML=htmlPredIA(a,{})}).catch(function(er){box.innerHTML='<p class="notice warn">'+esc(traduce(er))+'</p>'}).then(function(){b.disabled=false});return}
-  if(b.hasAttribute('data-pmc')){var k2=b.getAttribute('data-pmc').split(':'),m=(pm.mercados||[]).filter(function(x){return x.mercado===Number(k2[0])})[0],ld=m&&m.lados[Number(k2[1])];if(!ld)return;
-    abrirFormPM({coin:ld.coin,compra:true,etiqueta:m.pregunta+' · '+ld.nombre,titulo:'Comprar «'+ld.nombre+'»',texto:m.pregunta+'\nPrecio medio '+num(ld.precio,3)+' ('+Math.round(ld.precio*100)+'% según el mercado)',precioRef:ld.precio});return}
-  if(b.hasAttribute('data-pmv')){var cod=b.getAttribute('data-pmv'),p=((((datos.estado||{}).ultimo)||{}).predicciones||[]).filter(function(x){return x.coin==='+'+cod})[0];if(!p)return;
-    abrirFormPM({coin:'#'+cod,compra:false,etiqueta:p.pregunta+' · '+p.lado_nombre,titulo:'Vender «'+p.lado_nombre+'»',texto:p.pregunta+'\nTienes '+num(p.cantidad,2)+' u.',precioRef:p.precio||0.5,unidades:Math.floor(p.cantidad)});return}
-});
-// ---- Pedir a la IA (como en Órdenes, pero propone predicciones)
-document.querySelectorAll('#pmPedirEj [data-ej]').forEach(function(b){b.onclick=function(){$('pmPedirTxt').value=b.getAttribute('data-ej');$('pmPedirTxt').focus()}});
-var pmPedidoUlt=null;
-function htmlPedido(r){
-  var h='<div class="notice" style="margin-top:8px"><b>◎ La IA'+(r.modelo?' ('+esc(r.modelo)+')':'')+'</b><p style="margin:4px 0 0">'+esc(r.respuesta||'')+'</p>';
-  h+=(r.ordenes||[]).map(function(o){return '<div class="pred" style="margin-top:8px"><div style="display:flex;justify-content:space-between;gap:8px"><b>'+esc(o.etiqueta||o.coin)+'</b><span class="badge '+(o.accion==='COMPRAR'?'buy':'sell')+'">'+esc(o.accion)+(o.confianza?' '+(o.confianza|0)+'%':'')+'</span></div>'+
-    '<small>'+num(o.unidades,0)+' u. a '+(o.accion==='COMPRAR'?'≤ ':'≥ ')+o.limite+' · '+(o.accion==='COMPRAR'?'pagas como máximo ':'recibes al menos ')+num(o.unidades*o.limite,2)+' USDC'+(o.accion==='COMPRAR'?' · si aciertas cobras '+num(o.unidades,0)+' USDC':'')+'</small>'+
-    (o.ia&&o.ia.razon?'<small class="muted" style="display:block">'+esc(o.ia.razon)+'</small>':'')+(o.aviso?'<small class="warn-text" style="display:block">⚠ '+esc(o.aviso)+'</small>':'')+
-    '<div class="grid two" style="margin-top:6px"><button class="small primary" data-pped="aprobar" data-id="'+esc(o.id)+'">✔ APROBAR</button><button class="small" data-pedit="'+esc(o.id)+'">✎ EDITAR</button></div><button class="small ghost" data-pgraf="'+esc(o.coin)+'" style="margin-top:6px;width:100%">📈 GRÁFICAS</button></div>'}).join('');
-  if(!(r.ordenes||[]).length)h+='<small class="muted" style="display:block;margin-top:6px">No propuso ninguna orden.</small>';
-  if((r.descartadas||[]).length)h+='<small class="muted" style="display:block;margin-top:6px">Descartadas: '+r.descartadas.map(esc).join(' · ')+'</small>';
-  return h+'<small class="muted" style="display:block;margin-top:6px">Son propuestas, no asesoría financiera. Caducan en 2 h porque el precio cambia rápido. También puedes aprobarlas o cancelarlas en «Órdenes de predicción».</small></div>';
-}
-$('pmPedirBtn').onclick=function(){
-  var t=$('pmPedirTxt').value.trim(),b=this;if(!t){toast('Escribe qué quieres que busque la IA',true);return}
-  b.disabled=true;b.textContent='LA IA ESTÁ BUSCANDO…';$('pmPedirRes').innerHTML='<p class="empty">La IA revisa los mercados y el libro de Hyperliquid…</p>';
-  api('/api/predicciones/pedir',{instruccion:t}).then(function(r){pmPedidoUlt=r;$('pmPedirRes').innerHTML=htmlPedido(r);if((r.ordenes||[]).length){toast('La IA propuso '+r.ordenes.length+': revisa y aprueba');$('pmPedirTxt').value=''}return cargarPM()})
-    .catch(function(e){$('pmPedirRes').innerHTML='<p class="notice warn" style="margin-top:8px">'+esc(e.status===404&&!(e.data&&e.data.error&&!/Ruta/.test(e.data.error))?'Tu nube aún no tiene esta función: Config → Actualizar nube.':traduce(e))+'</p>'})
-    .then(function(){b.disabled=false;b.textContent='PROPONER PREDICCIONES'});
-};
-$('pmPedirRes').addEventListener('click',function(e){var b=e.target.closest('[data-pped]');if(!b)return;b.disabled=true;
-  accionOrden({accion:'aprobar',id:b.getAttribute('data-id')},'Aprobada: se ejecuta en el próximo ciclo').then(function(r){if(r){b.textContent='✔ APROBADA';var y=document.createElement('button');y.className='small secundario';y.setAttribute('data-ya','1');y.textContent='▶ EJECUTAR YA';y.style.marginTop='6px';y.style.width='100%';b.closest('.pred').appendChild(y)}else b.disabled=false})});
-function abrirFormPM(o){
-  toast('Leyendo el libro de Hyperliquid…');
-  var yo=!o.compra&&miPred(o.coin);pmMin=yo&&yo.min_venta||null;pmCosto=yo&&yo.costo||null;
-  return api('/api/predicciones/libro?coin='+encodeURIComponent(o.coin)).catch(function(){return null}).then(function(libro){
-    var p=confirmar(o.titulo,o.texto+((datos.config||{}).modo!=='real'?'\n⚠ Estás en simulación: la orden fallará hasta que actives dinero real.':''),'CREAR ORDEN',formPM(o.compra,o.precioRef||0.5,o.unidades,libro));
-    calcPM(o.compra);$('pmU').oninput=$('pmL').oninput=function(){calcPM(o.compra)};if($('pmHype'))$('pmHype').onchange=function(){calcPM(o.compra)};
-    return p.then(function(ok){if(!ok)return;var perd=!o.compra&&$('pmPerdida')&&$('pmPerdida').checked;
-      if(!o.compra&&pmMin&&Number($('pmL').value)<pmMin&&!perd){toast('No creé la venta: sería con pérdida. Sube el límite a '+pmMin+' o marca «vender aunque sea con pérdida».',true);return}
-      return ordenPM({tipo:'prediccion',coin:o.coin,accion:o.compra?'COMPRAR':'VENDER',unidades:Math.floor(Number($('pmU').value)),limite:Number($('pmL').value),etiqueta:o.etiqueta,pagar_con:o.compra?($('pmHype')&&$('pmHype').checked?'HYPE':'USDC'):undefined,permitir_perdida:perd||undefined})});
-  });
-}
-// Editar una orden de predicción pendiente (propuesta de la IA o tuya): unidades, precio
-// límite y cómo pagar. Sigue en su estado: una propuesta aún espera tu aprobación.
-function editarPred(id){
-  var o=(datos.ordenes||[]).filter(function(x){return x.id===id})[0]||(pmPedidoUlt&&(pmPedidoUlt.ordenes||[]).filter(function(x){return x.id===id})[0]);
-  if(!o||!(o.estado==='propuesta'||o.estado==='aprobada')){toast('Esa orden ya no está pendiente',true);return}
-  var compra=o.accion==='COMPRAR',lado=String(o.etiqueta||'').split(' · ').pop(),yo=!compra&&miPred(o.coin);pmMin=yo&&yo.min_venta||null;pmCosto=yo&&yo.costo||null;
-  toast('Leyendo el libro de Hyperliquid…');
-  return api('/api/predicciones/libro?coin='+encodeURIComponent(o.coin)).catch(function(){return null}).then(function(libro){
-    var p=confirmar('Editar '+(compra?'compra':'venta')+(lado?' «'+lado+'»':''),(o.etiqueta||o.coin)+'\n'+(o.origen==='ia'?'La IA propuso':'Tenías')+' '+num(o.unidades,0)+' u. a '+(compra?'≤ ':'≥ ')+o.limite+'. Cambia lo que quieras: '+(o.estado==='propuesta'?'sigue esperando tu aprobación.':'sigue aprobada para el próximo ciclo.'),'GUARDAR CAMBIOS',
-      formPM(compra,o.limite,o.unidades,libro,{limite:o.limite,pagar_con:o.pagar_con}));
-    calcPM(compra);$('pmU').oninput=$('pmL').oninput=function(){calcPM(compra)};if($('pmHype'))$('pmHype').onchange=function(){calcPM(compra)};
-    return p.then(function(ok){if(!ok)return;
-      var c={unidades:Math.floor(Number($('pmU').value)),limite:Number($('pmL').value)};
-      if(!compra){c.permitir_perdida=!!($('pmPerdida')&&$('pmPerdida').checked);if(pmMin&&c.limite<pmMin&&!c.permitir_perdida){toast('No guardé: con ese límite vendes con pérdida. Súbelo a '+pmMin+' o marca «vender aunque sea con pérdida».',true);return}}
-      if(compra)c.pagar_con=$('pmHype')&&$('pmHype').checked?'HYPE':'USDC';
-      return api('/api/ordenes',{accion:'editar',id:id,cambios:c}).then(function(r){toast('Orden editada');
-        if(pmPedidoUlt&&r&&r.orden){pmPedidoUlt.ordenes=(pmPedidoUlt.ordenes||[]).map(function(x){return x.id===id?r.orden:x});$('pmPedirRes').innerHTML=htmlPedido(pmPedidoUlt)}
-        return cargarOrdenes().then(pintarPM)}).catch(function(e){toast(traduce(e),true)});
-    });
-  });
-}
-document.addEventListener('click',function(e){var b=e.target.closest('[data-pedit]');if(b)editarPred(b.getAttribute('data-pedit'))});
-document.querySelectorAll('#pmFiltro [data-pf]').forEach(function(b){b.onclick=function(){pm.filtro=b.getAttribute('data-pf');$('pmBuscar').value='';pintarPM()}});
-$('pmBuscar').oninput=function(){pintarPM()};
-$('pmRecargar').onclick=function(){cargarPM(true)};
-setInterval(function(){if(!document.hidden&&vista==='predicciones'&&datos.estado)cargarPM(true)},60000);
 
 // ---------------------------------------------------------------- Modo simple
 // Para quien empieza: solo Panel, Cartera y Config. En el Panel aparece lo que dice
@@ -2224,7 +1884,7 @@ function lecturaGraf(c,r,M,cfg){
 }
 function fechaVela(ms,tf){var d=new Date(ms);return tf==='1d'?d.toLocaleDateString('es',{day:'2-digit',month:'short'}):d.toLocaleString('es',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
 function abrirGrafica(sym){
-  grafSym=String(sym||'').toUpperCase();if(!grafSym)return;grafDatos=null;grafPred=null;$('grafAcc').classList.remove('oculto');$('grafPredAcc').classList.add('oculto');
+  grafSym=String(sym||'').toUpperCase();if(!grafSym)return;grafDatos=null;$('grafAcc').classList.remove('oculto');
   $('grafTitulo').textContent=grafSym;$('grafSub').textContent='Cargando…';$('grafPos').innerHTML='';$('grafCuerpo').innerHTML='<p class="empty">Cargando velas…</p>';
   $('grafModal').classList.add('open');
   return api('/api/graficas?simbolo='+encodeURIComponent(grafSym)).then(function(d){grafDatos=d;pintarGrafica()}).catch(function(e){
@@ -2242,7 +1902,6 @@ function pintarPosicion(){
   $('grafPos').innerHTML=h;
 }
 function pintarGrafica(){
-  if(grafPred)return pintarGraficaPred();
   pintarPosicion();
   document.querySelectorAll('#grafTf [data-tf]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-tf')===grafTF)});
   var d=grafDatos,m=d&&d.marcos&&d.marcos[grafTF];
@@ -2273,101 +1932,18 @@ function cruzGrafica(c,t,r,M,W,sel){
   svgs.forEach(function(sv){sv.addEventListener('mousemove',mueve);sv.addEventListener('mouseleave',sale);sv.addEventListener('touchstart',function(e){if(e.touches[0])mueve(e.touches[0])},{passive:true});sv.addEventListener('touchmove',function(e){if(e.touches[0])mueve(e.touches[0])},{passive:true});sv.addEventListener('touchend',sale)});
 }
 document.addEventListener('click',function(e){var f=e.target.closest('[data-graf]');if(f&&!e.target.closest('button'))abrirGrafica(f.getAttribute('data-graf'))});
-document.querySelectorAll('#grafTf [data-tf]').forEach(function(b){b.onclick=function(){grafTF=b.getAttribute('data-tf');if(grafDatos||grafPred)pintarGrafica()}});
+document.querySelectorAll('#grafTf [data-tf]').forEach(function(b){b.onclick=function(){grafTF=b.getAttribute('data-tf');if(grafDatos)pintarGrafica()}});
 $('grafCerrar').onclick=cerrarGrafica;
 $('grafModal').addEventListener('click',function(e){if(e.target===$('grafModal'))cerrarGrafica()});
-// ---- Gráficas de una predicción: probabilidad del lado (15 min, 48 h) con la línea
-// del modelo, y el precio del subyacente con la línea del objetivo, RSI y MACD.
-var grafPred=null;
-function abrirGraficaPred(coin){
-  coin=String(coin||'').replace(/^\+/,'#');if(!/^#\d+$/.test(coin))return;
-  grafPred={coin:coin,datos:null};grafSym=null;grafDatos=null;
-  $('grafTitulo').textContent='Predicción';$('grafSub').textContent='Cargando…';$('grafPos').innerHTML='';$('grafCuerpo').innerHTML='<p class="empty">Cargando gráficas de Hyperliquid…</p>';
-  $('grafAcc').classList.add('oculto');$('grafPredAcc').innerHTML='';$('grafPredAcc').classList.remove('oculto');
-  $('grafModal').classList.add('open');
-  return api('/api/predicciones/grafica?coin='+encodeURIComponent(coin)).then(function(d){if(!grafPred||grafPred.coin!==coin)return;grafPred.datos=d;pintarGrafica()})
-    .catch(function(e){if(!grafPred||grafPred.coin!==coin)return;$('grafSub').textContent='Sin gráfica';$('grafCuerpo').innerHTML='<p class="notice warn">'+esc(e.status===404&&!/abierto/.test((e.data&&e.data.error)||'')?'Tu nube aún no tiene gráficas de predicción: Config → Actualizar nube.':traduce(e))+'</p>'});
-}
-function svgProb(v,W,modelo){var H=130,pad=8,y=function(x){return H-pad-x/100*(H-pad*2)},n=v.length-1,col=v[n]>=v[0]?'var(--up)':'var(--down)',d=trazo(v,W,y);
-  var h='<svg class="pprob" viewBox="0 0 '+W+' '+H+'" data-h="'+H+'">'+rejilla(W,H,4)+'<path d="'+d+' L'+W+' '+H+' L0 '+H+' Z" fill="'+col+'" opacity=".10"/><path class="serie" d="'+d+'" style="stroke:'+col+'"/>';
-  if(modelo!=null)h+='<line class="lim" x1="0" x2="'+W+'" y1="'+y(modelo).toFixed(1)+'" y2="'+y(modelo).toFixed(1)+'"/><text class="lbl" x="4" y="'+(y(modelo)-4).toFixed(1)+'" style="fill:var(--acento)">modelo '+num(modelo,1)+'%</text>';
-  return h+'<circle cx="'+W+'" cy="'+y(v[n]).toFixed(1)+'" r="4" fill="'+col+'"/><text class="lbl" x="2" y="11">100%</text><text class="lbl" x="2" y="'+(H-2)+'">0%</text></svg>'}
-// Cuánto se mueve normalmente el subyacente (1 desviación) en 1 h, 24 h y 48 h.
-// Quién creó el mercado (Hyperliquid o un creador externo: out, skew, trade.xyz).
-function htmlCreador(m){
-  if(!m||!m.creador)return '';
-  return ' · creado por <b>'+esc(m.creador)+'</b>'+(m.comision_doble?' <span class="warn-text" title="Este creador cobra su parte: la comisión al vender es el doble">(comisión ×2)</span>':'');
-}
-function htmlVol(d){var v=d.mov||d.movimiento_tipico_pct;if(!v)return '';var reg=d.regimen||d.regimen_volatilidad;
-  return '<p class="notice" style="margin-top:6px">Se mueve normalmente <b>±'+num(v.h1,2)+'%</b> en 1 h · <b>±'+num(v.h24,2)+'%</b> en 24 h · <b>±'+num(v.h48,2)+'%</b> en 48 h'+
-    ((d.sigma_plazo_pct||d.movimiento_esperado_hasta_vencer_pct)!=null?' · hasta vencer <b>±'+num(d.sigma_plazo_pct||d.movimiento_esperado_hasta_vencer_pct,2)+'%</b>':'')+
-    (reg==='turbulento'?'<br><b class="warn-text">🔥 Turbulento:</b> la última hora se mueve mucho más que lo normal; el modelo es menos fiable y la IA exige más ventaja.':reg==='calmo'?'<br>😴 Calmo: la última hora casi no se movió.':'')+'</p>'}
-// Comprar un lado (#N) desde cualquier botón: busca el mercado en la lista o en la gráfica abierta.
-function comprarLado(coin){
-  coin='#'+String(coin).replace(/^[#+]/,'');var cod=Number(coin.slice(1)),mid=Math.floor(cod/10),i=cod%10;
-  var m=(pm.mercados||[]).filter(function(x){return x.mercado===mid})[0]||(grafPred&&grafPred.datos&&grafPred.datos.mercado===mid?{pregunta:grafPred.datos.pregunta,lados:grafPred.datos.lados||[]}:null);
-  var l=m&&m.lados[i];if(!l){toast('Ese mercado ya no está en la lista: recárgala',true);return}
-  abrirFormPM({coin:coin,compra:true,etiqueta:m.pregunta+' · '+l.nombre,titulo:'Comprar «'+l.nombre+'»',texto:m.pregunta+(l.precio!=null?'\nPrecio medio '+num(l.precio,3)+' ('+Math.round(l.precio*100)+'% según el mercado)':''),precioRef:l.precio||0.5});
-}
-document.addEventListener('click',function(e){var b=e.target.closest('[data-pcomprar]');if(!b)return;if($('grafModal').classList.contains('open'))cerrarGrafica();comprarLado(b.getAttribute('data-pcomprar'))});
+// ---- 🌍 Mercado global (pestaña IA): cripto, bolsa, oro y petróleo, el mismo que ve la IA.
 var TONO_TXT={alcista:'APETITO DE RIESGO',bajista:'AVERSIÓN AL RIESGO',mixto:'MIXTO'};
 function pintarGlobal(g){var P=$('pmGlobal');if(!P)return;P.classList.toggle('oculto',!g);if(!g)return;
   var c=function(x){return x==null?'—':'<span class="'+clsPct(x)+'">'+pct(x)+'</span>'};
   P.innerHTML='<div class="panel-title"><span>🌍 Mercado global</span><span class="pill'+(g.turbulencia?' warn':'')+'">'+(g.turbulencia?'🔥 TURBULENCIA':TONO_TXT[g.tono]||'—')+'</span></div>'+
     '<p class="notice" style="margin:0">'+esc(g.resumen)+'</p><div class="gfPos">'+(g.activos||[]).map(function(a){
       return '<div class="metric"><span>'+esc(a.nombre)+(a.regimen==='turbulento'?' 🔥':'')+'</span><b>'+c(a.cambio_24h_pct)+'</b><small class="muted">1 h '+c(a.cambio_1h_pct)+' · 48 h '+c(a.cambio_48h_pct)+'</small></div>'}).join('')+'</div>'+
-    '<small class="muted" style="display:block;margin-top:6px">Cambios en 24 h (abajo 1 h y 48 h). La IA lo tiene en cuenta en cada decisión; con turbulencia exige 4 puntos más de ventaja.</small>'}
-function miPred(coin){return ((((datos.estado||{}).ultimo)||{}).predicciones||[]).filter(function(x){return x.coin==='+'+String(coin).slice(1)})[0]}
-function pintarGraficaPred(){
-  var d=grafPred.datos;if(!d)return;var W=600;
-  document.querySelectorAll('#grafTf [data-tf]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-tf')===grafTF)});
-  var pc=((d.prob&&d.prob.c)||[]).map(function(x){return Number(x)*100}),pt=(d.prob&&d.prob.t)||[],pm=d.precio_lado!=null?d.precio_lado*100:pc[pc.length-1],yo=miPred(d.coin);
-  $('grafTitulo').textContent=d.pregunta;$('grafSub').textContent='Lado «'+d.lado_nombre+'» · '+venceEn(d.vence)+(d.vence?' ('+hora(d.vence)+')':'')+' · Hyperliquid';
-  var lados=d.lados&&d.lados.length?d.lados:[{nombre:d.lado_nombre,coin:d.coin,precio:d.precio_lado}];
-  $('grafPredAcc').innerHTML='<div class="grid two" style="margin-top:12px">'+lados.map(function(l,i){return '<button class="primary" data-gpc="'+esc(l.coin)+'"'+(l.precio==null?' disabled':'')+'>COMPRAR «'+esc(String(l.nombre).toUpperCase())+'»'+(l.precio!=null?' · '+Math.round(l.precio*100)+'%':'')+'</button>'}).join('')+'</div>'+
-    (yo?'<button class="danger" data-gpv style="margin-top:8px;width:100%">VENDER MIS '+num(Math.floor(yo.cantidad),0)+' U. DE «'+esc(String(d.lado_nombre).toUpperCase())+'»</button>':'')+
-    '<button id="grafPredIABtn" class="secundario" style="margin-top:8px;width:100%">✨ ANALIZAR CON IA</button>';
-  $('grafPos').innerHTML='<div class="gfPos"><div class="metric"><span>Mercado</span><b>'+(pm!=null?num(pm,1)+'%':'—')+'</b></div><div class="metric"><span>Modelo</span><b>'+(d.prob_modelo!=null?num(d.prob_modelo,1)+'%':'—')+'</b></div><div class="metric"><span>Ventaja</span><b class="'+(d.ventaja>=3?'up':d.ventaja<=-3?'down':'')+'">'+(d.ventaja!=null?(d.ventaja>0?'+':'')+num(d.ventaja,1)+' pts':'—')+'</b></div>'+
-    (yo?'<div class="metric"><span>Tienes</span><b>'+num(yo.cantidad,0)+' u.</b></div><div class="metric"><span>Valor</span><b>'+(yo.valor!=null?num(yo.valor,2):'—')+' USDC</b></div><div class="metric"><span>Si aciertas</span><b>'+num(yo.pago_si_acierta,2)+' USDC</b></div>':'')+'</div>';
-  var h=htmlVol(d)+(d.global?'<p class="notice" style="margin-top:6px">🌍 '+esc(d.global.resumen)+'</p>':'')+'<div class="gfHead"><b>Probabilidad de «'+esc(d.lado_nombre)+'»</b><span>'+(pm!=null?num(pm,1)+'%':'—')+'</span></div>'+
-    (pc.length>1?svgProb(pc,W,d.prob_modelo)+'<div class="gfLeg"><span>'+esc(pt[0]?fechaVela(pt[0],'1h'):'')+'</span><span style="margin-left:auto">'+esc(pt[pc.length-1]?fechaVela(pt[pc.length-1],'1h'):'')+'</span></div><div class="gfLeg"><span><i style="background:var(--acento)"></i>Probabilidad del modelo</span></div>':'<p class="empty">Este lado aún casi no tiene operaciones para graficar.</p>');
-  var m=d.marcos&&d.marcos[grafTF],c=null,r=null,M=null,t=null;
-  if(!d.marcos)h+='<p class="notice">'+(d.regla?esc(d.regla)+'<br>':'')+'Este mercado no depende de un precio: solo se grafica su probabilidad. Pídele a la IA su análisis.</p>';
-  else if(!m||!m.c||m.c.length<2)h+='<p class="empty">Sin velas '+grafTF.toUpperCase()+' de '+esc(d.subyacente)+'. Prueba otro marco.</p>';
-  else{
-    c=m.c.map(Number);t=m.t||[];var n=c.length-1,cfg=(datos.estado&&datos.estado.config)||datos.config||{},bajo=Number(cfg.rsi_compra)||35,alto=Number(cfg.rsi_venta)||68,cambio=(c[n]/c[0]-1)*100;
-    r=rsiSerie(c,14);M=macdSerie(c);
-    var lineas=(d.lineas&&d.lineas.length?d.lineas:d.objetivo?[{p:d.objetivo,t:'objetivo'}]:[]).map(function(x){return {p:Number(x.p),t:x.t}});
-    h+='<div class="gfHead"><b>'+esc(d.nombre_sub||d.subyacente)+' '+esc(precio(c[n]))+'</b><span class="'+clsPct(cambio)+'">'+pct(cambio)+' en '+(n+1)+' velas '+grafTF.toUpperCase()+'</span></div>'+svgPrecio(c,W,null,lineas)+
-      '<div class="gfLeg"><span>'+esc(t[0]?fechaVela(t[0],grafTF):'')+'</span><span style="margin-left:auto">'+esc(t[n]?fechaVela(t[n],grafTF):'')+'</span></div>'+
-      '<div class="gfHead"><b>RSI 14</b><span>'+(r[n]!=null?r[n].toFixed(1):'—')+'</span></div>'+svgRSI(r,W,bajo,alto)+
-      '<div class="gfHead"><b>MACD 12/26/9</b><span>'+(M.hist[n]!=null?'hist '+M.hist[n].toPrecision(3):'—')+'</span></div>'+svgMACD(M,W)+
-      '<p class="notice">'+esc(lecturaPred(d,c[n]))+'<br>'+esc(lecturaGraf(c,r,M,{rsi_compra:bajo,rsi_venta:alto}))+'</p>';
-  }
-  h+='<div id="grafPredIA"></div><small class="muted">Datos públicos de Hyperliquid (se refrescan cada minuto). El modelo usa la volatilidad de 1 h, 24 h y 48 h e ignora noticias. No es asesoría financiera.</small>';
-  $('grafCuerpo').innerHTML=h;
-  if(c)cruzGrafica(c,t,r,M,W,'svg:not(.pprob)');
-}
-function lecturaPred(d,ahora){
-  var N=d.nombre_sub||d.subyacente,si=/^S/i.test(d.lado_nombre||''),hrs=d.vence?Math.max(0,(d.vence-Date.now())/36e5):null,t='';
-  if(d.objetivo&&ahora){var dist=(ahora/d.objetivo-1)*100;t=N+' está '+num(Math.abs(dist),2)+'% '+(dist>=0?'por encima':'por debajo')+' del '+(d.tipo==='toque'?'nivel a tocar ':'objetivo ')+precio(d.objetivo)+(hrs!=null?' y faltan '+num(hrs,1)+' h':'')+'. '}
-  else if(hrs!=null)t='Faltan '+num(hrs,1)+' h. ';
-  var L='«'+d.lado_nombre+'» gana si ';
-  t+=si&&d.regla?d.regla:d.tipo==='toque'&&d.objetivo?L+N+' NO toca '+precio(d.objetivo)+' antes de vencer.':d.tipo==='precio'&&d.objetivo?L+N+' queda por debajo de '+precio(d.objetivo)+' al vencer.':d.regla?d.regla.replace('«Sí» gana si',L+'NO se cumple que'):'';
-  return t+
-    (d.prob_modelo!=null&&d.precio_lado!=null?' El modelo le da '+num(d.prob_modelo,1)+'% y el mercado '+num(d.precio_lado*100,1)+'%'+(d.ventaja>=3?': el modelo lo ve barato.':d.ventaja<=-3?': el modelo lo ve caro.':': precio cercano al justo.'):'');
-}
-document.addEventListener('click',function(e){var b=e.target.closest('[data-pgraf]');if(b)abrirGraficaPred(b.getAttribute('data-pgraf'))});
-// Botones de la gráfica de una predicción: comprar Sí / No, vender lo tuyo y una sola IA
-// (analiza el mercado completo y dice qué lado comprar, o que no entres).
-$('grafPredAcc').addEventListener('click',function(e){
-  var d=grafPred&&grafPred.datos;if(!d)return;var b=e.target.closest('button');if(!b)return;
-  if(b.hasAttribute('data-gpc')){cerrarGrafica();comprarLado(b.getAttribute('data-gpc'));return}
-  if(b.hasAttribute('data-gpv')){var yo=miPred(d.coin);if(!yo)return;cerrarGrafica();
-    abrirFormPM({coin:d.coin,compra:false,etiqueta:d.pregunta+' · '+d.lado_nombre,titulo:'Vender «'+d.lado_nombre+'»',texto:d.pregunta+'\nTienes '+num(yo.cantidad,2)+' u.',precioRef:yo.precio||d.precio_lado||0.5,unidades:Math.floor(yo.cantidad)});return}
-  if(b.id==='grafPredIABtn'){var box=$('grafPredIA');if(!box)return;b.disabled=true;box.innerHTML='<p class="empty">La IA está analizando el mercado…</p>';
-    api('/api/predicciones/analizar',{mercado:d.mercado}).then(function(a){box.innerHTML=htmlPredIA(a,{},true)}).catch(function(er){box.innerHTML='<p class="notice warn">'+esc(traduce(er))+'</p>'}).then(function(){b.disabled=false})}
-});
+    '<small class="muted" style="display:block;margin-top:6px">Cambios en 24 h (abajo 1 h y 48 h). La IA lo tiene en cuenta en cada decisión; con turbulencia o aversión al riesgo exige 5 puntos más de confianza para comprar.</small>'}
+function cargarGlobal(){return api('/api/mercado/global').then(function(d){pintarGlobal(d&&d.global)}).catch(function(){pintarGlobal(null)})}
 $('grafOrden').onclick=function(){
   var s=grafSym;cerrarGrafica();irA('ordenes');$('ordNuevaBox').open=true;$('onSym').value=s;$('onCant').focus()};
 $('grafIA').onclick=function(){
@@ -2610,16 +2186,15 @@ window.appBack=function(){
 var DEMO=(function(){
   var ahora=Date.now(),h=[],v=1000;
   for(var i=0;i<60;i++){v*=1+(Math.sin(i/6)*0.004+0.0012);h.push([ahora-(60-i)*1800000,Math.round(v*100)/100])}
-  var cfg={modo:'simulacion',pausado:false,quote:'USDT',objetivo:{BTC:40,ETH:25,SOL:10},monto_min:5,monto_max:25,rsi_compra:35,rsi_venta:68,banda:3,ganancia_min:1.5,stop_perdida:0,nunca_vender_con_perdida:true,ia:'veto',ia_conf_min:65,max_ops_ciclo:2,marco:'1h',saldo_simulado:1000,pred_supervisor_log:[{ts:Date.now()-2*36e5,modelo:'demo',razon:'(Demo) Muchas compras no se llenaron: pido más ventaja y menos compras por ciclo.',cambios:[{k:'pred_ventaja',antes:8,despues:10}]}]};
+  var cfg={modo:'simulacion',pausado:false,quote:'USDT',objetivo:{BTC:40,ETH:25,SOL:10},monto_min:5,monto_max:25,rsi_compra:35,rsi_venta:68,banda:3,ganancia_min:1.5,stop_perdida:0,nunca_vender_con_perdida:true,ia:'veto',ia_conf_min:65,max_ops_ciclo:2,marco:'1h',saldo_simulado:1000};
   var activos=[{simbolo:'USDT',cantidad:312.4,precio:1,valor:312.4,peso:30.2},{simbolo:'BTC',cantidad:0.00492,precio:84760,valor:417.0,peso:40.3,costo:82110,pnl:3.23,objetivo:40},{simbolo:'ETH',cantidad:0.0921,precio:2686,valor:247.4,peso:23.9,costo:2702,pnl:-0.59,objetivo:25},{simbolo:'SOL',cantidad:0.41,precio:141.3,valor:57.9,peso:5.6,costo:136.2,pnl:3.74,objetivo:10}];
   var ops=[{ts:ahora/1000-1800,simbolo:'SOL',accion:'COMPRAR',cantidad:0.17,precio:139.9,total:24,motivo:'bajo su objetivo (3.1% de 10%) y RSI 33',simulada:true},{ts:ahora/1000-86400,simbolo:'BTC',accion:'VENDER',cantidad:0.0003,precio:85400,total:25.6,motivo:'sobre su objetivo, ganancia 4.0%',simulada:true,pnl:4.01}];
   var radar=[['BTC',84760,0.3,2.7e9,58,'alcista',1],['ETH',2686,-1.2,1.1e9,44,'neutral',1],['SOL',141.3,2.4,4.1e8,36,'alcista',1],['XRP',0.61,-0.8,3.2e8,41,'bajista',0],['SUI',1.92,5.6,2.1e8,63,'alcista',0],['PEPE',0.0000091,-3.4,1.8e8,29,'bajista',0],['LINK',13.8,1.1,9.4e7,52,'neutral',0],['DOGE',0.131,0.4,8.8e7,47,'neutral',0]].map(function(r){return {simbolo:r[0],precio:r[1],cambio_24h:r[2],volumen:r[3],rsi:r[4],tendencia:r[5],en_cartera:!!r[6]}});
   var dOrd=[{id:'d1',ts:ahora-607000,origen:'ia',estado:'propuesta',simbolo:'SOL',accion:'COMPRAR',monto:18,quote:'USDT',limite:null,razon:'Rebote desde soporte con RSI bajo.',confianza:74,ia:{accion:'COMPRAR',confianza:74,razon:'Rebote desde soporte con RSI bajo.'},vence:ahora+80000000,historia:[{ts:ahora-607000,quien:'ia',texto:'Propuesta con 74% de confianza'}]},
     {id:'d2',ts:ahora-3600000,origen:'usuario',estado:'aprobada',simbolo:'ETH',accion:'COMPRAR',monto:15,quote:'USDT',limite:2600,nota:'Esperando precio ≤ 2600 (ahora 2686)',vence:ahora+50000000,historia:[{ts:ahora-3600000,quien:'usuario',texto:'Creada'}]},
-    {id:'d4',ts:ahora-7200000,origen:'usuario',estado:'error',tipo:'prediccion',coin:'#90170',simbolo:'#90170',etiqueta:'¿SOL ≥ 119.76 al vencer? · Sí',accion:'VENDER',unidades:2,limite:0.827,quote:'USDT',error:'No se llenó: nadie compraba a 0.827 o mejor. No se movió nada. El mejor comprador pagaba 0.81001 (15 u.): reintenta con límite 0.81001 o menos.',historia:[]},
     {id:'d3',ts:ahora-86400000,origen:'ia',estado:'ejecutada',simbolo:'BTC',accion:'VENDER',pct:50,quote:'USDT',razon:'Sobre su objetivo con ganancia.',resultado:{precio:85400,total:25.6,ts:ahora-86000000},historia:[]}];
   var feed=[{id:'1',ts:ahora-1800000,kind:'operacion',title:'🧪 Compra SOL',body:'24.00 USDT a 139.9 · bajo su objetivo y RSI 33'},{id:'2',ts:ahora-86400000,kind:'operacion',title:'🧪 Venta BTC',body:'25.60 USDT a 85400 · ganancia 4.0%'}];
-  function estado(){return {version:'1.0.0',config:cfg,ciclo:58,actualizado:ahora-600000,historial:h,costos:{BTC:{costo:82110},ETH:{costo:2702,estimado:true},SOL:{costo:136.2}},ultimo:{ok:true,exchange:'kraken',modo:cfg.modo,quote:'USDT',total:1034.7,libre:312.4,activos:activos,propuestas:[{simbolo:'SOL',accion:'COMPRAR',monto:24,motivo:'bajo su objetivo (5.6% de 10%) y RSI 33'}],bloqueadas:[],ejecutadas:[ops[0]],notas:['ETH: vendería, pero no hay ganancia suficiente (-0.6%)'],errores:[],predicciones:[{coin:'+90151',mercado:9015,lado:1,lado_nombre:'No',pregunta:'¿BTC ≥ 85 501 al vencer?',cantidad:5,precio:0.51,valor:2.55,pago_si_acierta:5,vence:ahora+12*36e5,quote:'USDT',costo:0.45,min_venta:0.4514,pnl_pct:13.33,creador:'skew',comision_doble:true}],valor_predicciones:2.55,pred_ia:{ts:ahora-600000,revisados:14,candidatos:1,posiciones:1,modelo:'qwen/qwen3.8-27b',modo:cfg.pred_ia||'proponer',opiniones:[{coin:'#90180',pregunta:'¿HYPE ≥ 92,976 al vencer?',lado:'Sí',accion:'NO ENTRAR',confianza:70,prob:30,razon:'(Demo) Ventaja pequeña y HYPE lejos del objetivo'},{coin:'#90151',pregunta:'¿BTC ≥ 85 501 al vencer?',lado:'No',accion:'MANTENER',confianza:60,prob:50,razon:'(Demo) Casi una moneda al aire'}]},ia:{modelo:'qwen/qwen3.8-27b',modo:'veto',opiniones:{SOL:{accion:'COMPRAR',confianza:68,razon:'Rebote desde soporte con RSI bajo y volumen estable.'}}}}}}
+  function estado(){return {version:'1.1.0',config:cfg,ciclo:58,actualizado:ahora-600000,historial:h,costos:{BTC:{costo:82110},ETH:{costo:2702,estimado:true},SOL:{costo:136.2}},ultimo:{ok:true,exchange:'kraken',modo:cfg.modo,quote:'USDT',total:1034.7,libre:312.4,activos:activos,propuestas:[{simbolo:'SOL',accion:'COMPRAR',monto:24,motivo:'bajo su objetivo (5.6% de 10%) y RSI 33'}],bloqueadas:[],ejecutadas:[ops[0]],notas:['ETH: vendería, pero no hay ganancia suficiente (-0.6%)'],errores:[],ia:{modelo:'qwen/qwen3.8-27b',modo:'veto',opiniones:{SOL:{accion:'COMPRAR',confianza:68,razon:'Rebote desde soporte con RSI bajo y volumen estable.'}}}}}}
   return {api:function(ruta,cuerpo){
     if(ruta==='/api/estado')return estado();
     if(ruta==='/api/operaciones')return {operaciones:ops};
@@ -2677,31 +2252,7 @@ var DEMO=(function(){
     }
     if(ruta==='/api/ia/probar')return cuerpo&&cuerpo.todos?{ok:true,proveedor:'kilo.ai',modelo:'nvidia/nemotron-3-super-120b-a12b:free',ms:1300,preferido_nuevo:'nvidia/nemotron-3-super-120b-a12b:free',pruebas:[{modelo:'kilo-auto/free',ok:false,ms:400,error:'kilo.ai HTTP 429 con kilo-auto/free'},{modelo:'nvidia/nemotron-3-super-120b-a12b:free',ok:true,ms:1300}]}
       :{ok:true,proveedor:'kilo.ai',modelo:'nvidia/nemotron-3-super-120b-a12b:free',ms:1300,pruebas:[{modelo:'nvidia/nemotron-3-super-120b-a12b:free',ok:true,ms:1300}]};
-    if(ruta==='/api/predicciones/mercados')return {ts:ahora,total:6,cuenta:{cripto_hoy:2,cripto_mediano:1,bolsa:1,economia:2},global:{ts:ahora,tono:'mixto',turbulencia:false,refugio:false,resumen:'24 h: cripto +0.8%, bolsa −0.3%, oro +0.4%, petróleo −1.1%. Tono mixto. Volatilidad normal.',activos:[{sub:'BTC',nombre:'BTC',precio:85644,cambio_1h_pct:0.2,cambio_24h_pct:1.1,cambio_48h_pct:2.4,regimen:'normal'},{sub:'ETH',nombre:'ETH',precio:2610,cambio_1h_pct:-0.1,cambio_24h_pct:0.6,cambio_48h_pct:1.2,regimen:'normal'},{sub:'HYPE',nombre:'HYPE',precio:92.1,cambio_1h_pct:-1.3,cambio_24h_pct:0.7,cambio_48h_pct:-2.2,regimen:'turbulento'},{sub:'xyz:SP500',nombre:'S&P 500',precio:7767.9,cambio_1h_pct:0,cambio_24h_pct:-0.3,cambio_48h_pct:0.2,regimen:'normal'},{sub:'xyz:GOLD',nombre:'Oro',precio:4012,cambio_1h_pct:0.1,cambio_24h_pct:0.4,cambio_48h_pct:0.9,regimen:'normal'},{sub:'xyz:CL',nombre:'Petróleo WTI',precio:61.2,cambio_1h_pct:-0.2,cambio_24h_pct:-1.1,cambio_48h_pct:-1.9,regimen:'normal'}]},mercados:[
-      {mercado:9015,pregunta:'¿BTC ≥ 85 501 al vencer?',regla:'«Sí» gana si BTC está en 85 501 o más al vencer.',tipo:'precio',categoria:'cripto',plazo:'hoy',subyacente:'BTC',nombre_sub:'BTC',objetivo:85501,vence:ahora+8*36e5,horas:8,precio_actual:85644,distancia_pct:0.17,prob_modelo:56.1,mov:{h1:0.42,h24:1.9,h48:2.8},regimen:'normal',sigma_plazo_pct:1.2,cambio_1h_pct:0.2,cambio_24h_pct:1.1,cambio_48h_pct:2.4,lados:[{nombre:'Sí',coin:'#90150',precio:0.59,prob_modelo:56.1,ventaja:-2.9},{nombre:'No',coin:'#90151',precio:0.41,prob_modelo:43.9,ventaja:2.9}],quote:'USDC'},
-      {mercado:9018,pregunta:'¿HYPE ≥ 92.976 al vencer?',regla:'«Sí» gana si HYPE está en 92.976 o más al vencer.',tipo:'precio',categoria:'cripto',plazo:'hoy',subyacente:'HYPE',nombre_sub:'HYPE',objetivo:92.976,vence:ahora+8*36e5,horas:8,precio_actual:92.1,distancia_pct:-0.94,prob_modelo:29.1,mov:{h1:1.6,h24:3.1,h48:4.4},regimen:'turbulento',sigma_plazo_pct:2.5,cambio_1h_pct:-1.3,cambio_24h_pct:0.7,cambio_48h_pct:-2.2,lados:[{nombre:'Sí',coin:'#90180',precio:0.258,prob_modelo:29.1,ventaja:3.3},{nombre:'No',coin:'#90181',precio:0.742,prob_modelo:70.9,ventaja:-3.3}],quote:'USDC'},
-      {mercado:7175,pregunta:'¿BTC toca 92 500 antes del 1 nov?',regla:'«Sí» gana si BTC toca 92 500 en cualquier momento antes de vencer.',tipo:'toque',categoria:'cripto',plazo:'mediano',subyacente:'BTC',nombre_sub:'BTC',objetivo:92500,vence:ahora+25*864e5,horas:600,precio_actual:85644,distancia_pct:-7.41,prob_modelo:31.2,lados:[{nombre:'Sí',coin:'#71750',precio:0.29,prob_modelo:31.2,ventaja:2.2},{nombre:'No',coin:'#71751',precio:0.71,prob_modelo:68.8,ventaja:-2.2}],quote:'USDC'},
-      {mercado:7116,pregunta:'¿S&P 500 ≥ 7590 al vencer?',regla:'«Sí» gana si S&P 500 está en 7590 o más al vencer.',tipo:'precio',categoria:'bolsa',plazo:'hoy',subyacente:'xyz:SP500',nombre_sub:'S&P 500',objetivo:7590,vence:ahora+5*36e5,horas:5,precio_actual:7767.9,distancia_pct:2.34,prob_modelo:99.2,lados:[{nombre:'Sí',coin:'#71160',precio:0.95,prob_modelo:99.2,ventaja:4.2},{nombre:'No',coin:'#71161',precio:0.05,prob_modelo:0.8,ventaja:-4.2}],quote:'USDC'},
-      {mercado:4886,pregunta:'¿La Fed mantiene la tasa de interés (October 2026 FOMC)?',regla:'«Sí» gana si la Fed mantiene la tasa en esa decisión.',tipo:'evento',categoria:'economia',plazo:'mediano',subyacente:null,vence:ahora+21*864e5,horas:504,lados:[{nombre:'Sí',coin:'#48860',precio:0.87},{nombre:'No',coin:'#48861',precio:0.13}],quote:'USDC'},
-      {mercado:2597,pregunta:'¿Anthropic confirma su salida a bolsa antes del 31 oct?',regla:'«Sí» gana si Anthropic confirma oficialmente su salida a bolsa antes del 31 oct.',tipo:'evento',categoria:'economia',plazo:'mediano',subyacente:null,vence:ahora+24*864e5,horas:576,lados:[{nombre:'Sí',coin:'#25970',precio:0.12},{nombre:'No',coin:'#25971',precio:0.88}],quote:'USDC'}]};
-    if(ruta.indexOf('/api/predicciones/grafica')===0){
-      var gc=decodeURIComponent(ruta.split('coin=')[1]||''),gn=Number(gc.slice(1)),gl=gn%10,gm=Math.floor(gn/10),dep=gm===4886||gm===2597,pv=[],pt2=[],pp=gl?0.45:0.55,gmar={};
-      for(var gi=0;gi<70;gi++){pt2.push(ahora-(69-gi)*9e5);pp=Math.min(0.97,Math.max(0.03,pp+Math.sin(gi/4+gm)*0.02));pv.push(Number(pp.toFixed(4)))}
-      if(!dep)[['1h',36e5,0.004],['4h',144e5,0.009],['1d',864e5,0.02]].forEach(function(mm,k){var c=[],t=[],p=gm===9018?92.1:85644;
-        for(var i=0;i<100;i++){c.unshift(Number(p.toPrecision(6)));t.unshift(ahora-i*mm[1]);p=p/(1+Math.sin((i+k*7)/5)*mm[2]+Math.cos(i/2.3)*mm[2]*0.6)}gmar[mm[0]]={t:t,c:c}});
-      return {coin:gc,mercado:gm,lado:gl,regla:dep?'«Sí» gana si la Fed mantiene la tasa en esa decisión.':'«Sí» gana si '+(gm===9018?'HYPE':'BTC')+' está en el objetivo o más al vencer.',tipo:dep?'evento':'precio',pregunta:dep?'¿La Fed mantiene la tasa de interés (October 2026 FOMC)?':gm===9018?'¿HYPE ≥ 92,976 al vencer?':'¿BTC ≥ 85.501 al vencer?',lado_nombre:gl?'No':'Sí',precio_lado:pv[69],prob_modelo:dep?null:gl?43.9:56.1,ventaja:dep?null:gl?2.9:-2.9,
-        subyacente:dep?null:gm===9018?'HYPE':'BTC',objetivo:dep?null:gm===9018?92.976:85501,precio_actual:dep?null:gm===9018?92.1:85644,vence:ahora+(dep?200*864e5:8*36e5),ts:ahora,prob:{t:pt2,c:pv},marcos:dep?null:gmar,
-        lados:[{nombre:'Sí',coin:'#'+(gm*10),precio:dep?0.87:gm===9018?0.258:0.59},{nombre:'No',coin:'#'+(gm*10+1),precio:dep?0.13:gm===9018?0.742:0.41}],
-        mov:dep?null:gm===9018?{h1:1.6,h24:3.1,h48:4.4}:{h1:0.42,h24:1.9,h48:2.8},regimen:dep?null:gm===9018?'turbulento':'normal',sigma_plazo_pct:dep?null:gm===9018?2.5:1.2,global:{tono:'mixto',turbulencia:false,resumen:'24 h: cripto +0.8%, bolsa −0.3%, oro +0.4%, petróleo −1.1%. Tono mixto. Volatilidad normal.'}};
-    }
-    if(ruta==='/api/predicciones/pedir'){var tp=Date.now(),op={id:'dp'+tp,ts:tp,tipo:'prediccion',coin:'#90181',simbolo:'#90181',etiqueta:'¿HYPE ≥ 92.976 al vencer? · No',accion:'COMPRAR',unidades:15,limite:0.75,quote:'USDC',origen:'ia',estado:'propuesta',confianza:68,ia:{accion:'COMPRAR',confianza:68,razon:'(Demo) HYPE está 0,9% abajo y faltan 8 h.'},vence:tp+72e5,historia:[{ts:tp,quien:'ia',texto:'(Demo) Propuesta al pedirle «'+cuerpo.instruccion+'»'}]};
-      dOrd.unshift(op);return {ok:true,modelo:'demo',respuesta:'(Demo) Lo más claro hoy es el «No» de HYPE: el modelo le da 71% y cuesta 0,75; la ventaja es pequeña, así que solo 11 USDC.',ordenes:[op],descartadas:['¿BTC toca 92 500 antes del 1 nov? · Sí: ahora no hay vendedores']}}
-    if(ruta.indexOf('/api/predicciones/libro')===0)return {coin:decodeURIComponent(ruta.split('coin=')[1]),mejor_compra:{precio:0.81001,unidades:15},mejor_venta:{precio:0.86547,unidades:40}};
-    if(ruta==='/api/predicciones/analizar'&&cuerpo.mercado!=null&&cuerpo.lado==null)return {coin:'+'+(cuerpo.mercado*10+1),mercado_id:cuerpo.mercado,lado_sugerido:1,lado_nombre:'No',modelo:'demo',sugerencia:'COMPRAR NO',confianza:66,prob_estimada:62,
-      analisis:'(Demo) Mirando los dos lados: el «No» cuesta 0,41 y el precio debe subir más de lo que se mueve normalmente en 8 h. Con el mercado global mixto, el «No» tiene algo de margen.',riesgos:['Un movimiento de 1% decide el resultado'],
-      mercado:{subyacente:'BTC',precio_actual:85644,objetivo:85501,distancia_al_objetivo_pct:0.17,horas_para_vencer:8,lados:[{lado:'Sí',precio:0.59,prob_modelo_pct:56.1},{lado:'No',precio:0.41,prob_modelo_pct:43.9}],movimiento_tipico_pct:{h1:0.42,h24:1.9,h48:2.8},regimen_volatilidad:'normal'},
-      global:{tono:'mixto',turbulencia:false,resumen:'24 h: cripto +0.8%, bolsa −0.3%. Tono mixto. Volatilidad normal.'},ts:Date.now()};
-    if(ruta==='/api/predicciones/analizar')return {coin:cuerpo.coin||'+'+(cuerpo.mercado*10+(cuerpo.lado?1:0)),modelo:'demo',sugerencia:'MANTENER',confianza:62,prob_estimada:58,analisis:'(Demo) BTC está apenas por debajo del objetivo y faltan 12 h: el resultado es casi una moneda al aire. Tu lado «No» cotiza cerca de su valor justo.',riesgos:['Un movimiento de 1% decide el resultado'],mercado:{subyacente:'BTC',precio_actual:85451,objetivo:85501,distancia_al_objetivo_pct:-0.06,horas_para_vencer:12,prob_mercado_tu_lado_pct:51},ts:Date.now()};
+    if(ruta==='/api/mercado/global')return {ts:ahora,global:{ts:ahora,tono:'mixto',turbulencia:false,refugio:false,resumen:'24 h: cripto +0.8%, bolsa −0.3%, oro +0.2%, petróleo −0.6%. Tono mixto. Volatilidad normal.',activos:[{sub:'BTC',nombre:'BTC',cambio_1h_pct:0.2,cambio_24h_pct:1.1,cambio_48h_pct:2.4,regimen:'normal'},{sub:'ETH',nombre:'ETH',cambio_1h_pct:-0.1,cambio_24h_pct:0.5,cambio_48h_pct:1.2,regimen:'normal'},{sub:'xyz:SP500',nombre:'S&P 500',cambio_1h_pct:0,cambio_24h_pct:-0.3,cambio_48h_pct:0.4,regimen:'normal'},{sub:'xyz:GOLD',nombre:'Oro',cambio_1h_pct:0.1,cambio_24h_pct:0.2,cambio_48h_pct:0.9,regimen:'normal'}]}};
     if(ruta==='/api/ia/diagnosticar')return {modelo:'demo',resumen:'(Demo) El primer modelo gratuito estaba saturado (HTTP 429); ya quedó como principal uno que responde.',pasos:['No tienes que hacer nada más.'],arreglos:[]};
     if(ruta==='/api/avisos/probar'){feed.unshift({id:String(Date.now()),ts:Date.now(),kind:'prueba',title:'¡TradIA conectado! ☁️',body:'Prueba'});return {ok:true}}
     return {};
@@ -2760,7 +2311,7 @@ aplicarModoUi();
 $('appVer').textContent='v'+APP_VERSION;
 setTimeout(function(){buscarActualizacion(false)},2500);
 if(!S.onb||(!S.url&&!S.demo)){abrirOnb('hola');if(!S.tuto)abrirTuto(0)}else iniciarApp();
-window.__agente={tuto:function(){return tutoI},S:S,datos:datos,irPaso:irPaso,irA:irA,W:function(){return W},pintarEstado:pintarEstado,cargarEstado:cargarEstado,rsiSerie:rsiSerie,macdSerie:macdSerie,abrirGrafica:abrirGrafica,abrirGraficaPred:abrirGraficaPred,vista:function(){return vista}};
+window.__agente={tuto:function(){return tutoI},S:S,datos:datos,irPaso:irPaso,irA:irA,W:function(){return W},pintarEstado:pintarEstado,cargarEstado:cargarEstado,rsiSerie:rsiSerie,macdSerie:macdSerie,abrirGrafica:abrirGrafica,vista:function(){return vista}};
 })();
 </script>
 </body>

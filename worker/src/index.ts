@@ -27,25 +27,13 @@ const CONFIG_DEFECTO: Json = {
   monto_min: 5, monto_max: 25, rsi_compra: 35, rsi_venta: 68, banda: 3, ganancia_min: 1.5,
   stop_perdida: 0, nunca_vender_con_perdida: true, no_vender: [], ia: 'veto', ia_conf_min: 65, max_ops_ciclo: 2,
   marco: '1h', saldo_simulado: 1000, radar_pedidos: [], ordenes_ia: 'proponer', orden_horas: 24,
-  // Beta: la IA revisa los mercados de predicción en cada ciclo.
-  pred_ia: 'proponer', pred_monto: 11, pred_max_total: 30, pred_ventaja: 8, pred_conf_min: 65, pred_max_ciclo: 1,
-  pred_prob_min: 5, pred_prob_max: 95, pred_horas_min: 1, pred_categorias: ['cripto_hoy'], pred_vender_ia: true, pred_tomar_ganancia: 0,
-  pred_auto_solo_corto: true, pred_corto_horas: 36, pred_pagar_con: '',
-  pred_supervisor: true, pred_monto_techo: 11, pred_max_total_techo: 30, pred_supervisor_log: [],
   // Varias IAs votan cada decisión del ciclo (un modelo de cada proveedor primero).
   ia_consenso: { enabled: true, size: 3 },
 };
-const PRED_CATEGORIAS = ['cripto_hoy', 'cripto_mediano', 'bolsa'];
-// Mínimo por orden en predicciones: ~1 USDC (no los 10 de spot). Hyperliquid no lo
-// publica; se ve en el libro: cientos de órdenes de 1.00-1.05 USDC y muchas de menos de 10.
-const MIN_PRED = 1;
-
 // Límites duros: la app no puede guardar valores fuera de estos rangos.
 const RANGOS: Record<string, [number, number]> = {
   monto_min: [1, 1000], monto_max: [1, 5000], rsi_compra: [5, 60], rsi_venta: [40, 95], banda: [0, 20],
   ganancia_min: [0, 50], stop_perdida: [0, 50], ia_conf_min: [0, 100], max_ops_ciclo: [0, 10], saldo_simulado: [10, 1000000], orden_horas: [1, 168],
-  pred_monto: [1, 500], pred_max_total: [1, 5000], pred_ventaja: [3, 40], pred_conf_min: [0, 100], pred_max_ciclo: [1, 5],
-  pred_prob_min: [1, 50], pred_prob_max: [50, 99], pred_horas_min: [0, 48], pred_tomar_ganancia: [0, 99], pred_corto_horas: [1, 168],
 };
 
 const CORS = {
@@ -106,27 +94,6 @@ function validarConfig(actual: Json, cambios: Json): { config?: Json; error?: st
     if (!['off', 'proponer', 'auto'].includes(cambios.ordenes_ia)) return { error: 'ordenes_ia inválido' };
     c.ordenes_ia = cambios.ordenes_ia;
   }
-  if (cambios.pred_ia !== undefined) {
-    if (!['off', 'proponer', 'auto'].includes(cambios.pred_ia)) return { error: 'pred_ia inválido' };
-    c.pred_ia = cambios.pred_ia;
-  }
-  if (c.pred_monto > c.pred_max_total) return { error: 'El monto por compra no puede pasar del tope total' };
-  if (c.pred_tomar_ganancia > 0 && c.pred_tomar_ganancia < 50) return { error: 'Asegurar ganancia: 0 (apagado) o entre 50 y 99%' };
-  if (cambios.pred_categorias !== undefined) {
-    const l = Array.isArray(cambios.pred_categorias) ? [...new Set(cambios.pred_categorias.map(String))] : null;
-    if (!l || l.some((x) => !PRED_CATEGORIAS.includes(x))) return { error: 'Categorías de predicción inválidas' };
-    c.pred_categorias = l;
-  }
-  if (cambios.pred_vender_ia !== undefined) c.pred_vender_ia = Boolean(cambios.pred_vender_ia);
-  if (cambios.pred_supervisor !== undefined) c.pred_supervisor = Boolean(cambios.pred_supervisor);
-  // Moneda que se vende si falta USDC para pagar una predicción ('' = solo USDC).
-  if (cambios.pred_pagar_con !== undefined) c.pred_pagar_con = cambios.pred_pagar_con ? limpiarSimbolo(cambios.pred_pagar_con) : '';
-  if (cambios.pred_auto_solo_corto !== undefined) c.pred_auto_solo_corto = Boolean(cambios.pred_auto_solo_corto);
-  // Lo que pone el usuario es el techo: el supervisor IA solo puede bajarlo.
-  if (cambios.pred_monto !== undefined) c.pred_monto_techo = c.pred_monto;
-  if (cambios.pred_max_total !== undefined) c.pred_max_total_techo = c.pred_max_total;
-  // Y lo que pone en los demás parámetros es su límite de riesgo: el supervisor solo puede ser más estricto.
-  for (const k of SUPERVISABLES) if (cambios[k] !== undefined) c.pred_usuario = { ...(c.pred_usuario || {}), [k]: c[k] };
   if (cambios.nunca_vender_con_perdida !== undefined) c.nunca_vender_con_perdida = Boolean(cambios.nunca_vender_con_perdida);
   // «Acumular»: monedas que el agente compra pero nunca vende solo (tus órdenes manuales sí pasan).
   if (cambios.no_vender !== undefined) {
@@ -152,50 +119,6 @@ function validarConfig(actual: Json, cambios: Json): { config?: Json; error?: st
     c.modo = cambios.modo;
   }
   return { config: c };
-}
-
-// Supervisor IA de predicciones: solo parámetros de la lista, validados igual que
-// los del usuario, y el dinero nunca por encima del techo que puso el usuario.
-const SUPERVISABLES = ['pred_ventaja', 'pred_conf_min', 'pred_prob_min', 'pred_prob_max', 'pred_horas_min', 'pred_max_ciclo', 'pred_monto', 'pred_max_total', 'pred_categorias'];
-async function aplicarSupervisor(env: Env, ahora: number, s: Json): Promise<void> {
-  const actual = await leerConfig(env);
-  if (actual.pred_supervisor === false) return;
-  const cambios: Json = {};
-  for (const k of SUPERVISABLES) if (s.cambios[k] !== undefined) cambios[k] = s.cambios[k];
-  if (cambios.pred_monto !== undefined) cambios.pred_monto = Math.min(Number(cambios.pred_monto), Number(actual.pred_monto_techo ?? actual.pred_monto));
-  if (cambios.pred_max_total !== undefined) cambios.pred_max_total = Math.min(Number(cambios.pred_max_total), Number(actual.pred_max_total_techo ?? actual.pred_max_total));
-  if (cambios.pred_conf_min !== undefined) cambios.pred_conf_min = Math.max(50, Number(cambios.pred_conf_min));
-  // Nunca más arriesgado que lo que puso el usuario: más ventaja, más confianza, menos compras, menos categorías.
-  const usr: Json = { ...Object.fromEntries(SUPERVISABLES.map((k) => [k, actual[k]])), ...(actual.pred_usuario || {}) };
-  const n = (k: string) => Number(cambios[k]);
-  if (cambios.pred_ventaja !== undefined) cambios.pred_ventaja = Math.max(n('pred_ventaja'), Number(usr.pred_ventaja));
-  if (cambios.pred_conf_min !== undefined) cambios.pred_conf_min = Math.max(n('pred_conf_min'), Number(usr.pred_conf_min ?? 0));
-  if (cambios.pred_prob_min !== undefined) cambios.pred_prob_min = Math.max(n('pred_prob_min'), Number(usr.pred_prob_min));
-  if (cambios.pred_prob_max !== undefined) cambios.pred_prob_max = Math.min(n('pred_prob_max'), Number(usr.pred_prob_max));
-  if (cambios.pred_horas_min !== undefined) cambios.pred_horas_min = Math.max(n('pred_horas_min'), Number(usr.pred_horas_min));
-  if (cambios.pred_max_ciclo !== undefined) cambios.pred_max_ciclo = Math.min(n('pred_max_ciclo'), Number(usr.pred_max_ciclo));
-  if (cambios.pred_categorias !== undefined) {
-    const permitidas = Array.isArray(usr.pred_categorias) ? usr.pred_categorias : [];
-    const l = Array.isArray(cambios.pred_categorias) ? cambios.pred_categorias.filter((x: string) => permitidas.includes(x)) : [];
-    if (l.length) cambios.pred_categorias = l; else delete cambios.pred_categorias;
-  }
-  const v = validarConfig(actual, cambios);
-  if (!v.config) {
-    await bitacora(env, [{ ts: ahora, tipo: 'supervisor', ok: false, texto: `Supervisor IA: cambio rechazado (${v.error})` }]);
-    return;
-  }
-  // validarConfig trata lo que llega como si fuera del usuario: los techos no se mueven.
-  v.config.pred_monto_techo = actual.pred_monto_techo ?? actual.pred_monto;
-  v.config.pred_max_total_techo = actual.pred_max_total_techo ?? actual.pred_max_total;
-  v.config.pred_usuario = usr;
-  const hechos = Object.keys(cambios).filter((k) => JSON.stringify(actual[k]) !== JSON.stringify(v.config![k]))
-    .map((k) => ({ k, antes: actual[k], despues: v.config![k] }));
-  if (!hechos.length) return;
-  v.config.pred_supervisor_log = [{ ts: ahora, modelo: s.modelo || null, razon: String(s.razon || '').slice(0, 300), cambios: hechos }, ...(actual.pred_supervisor_log || [])].slice(0, 8);
-  await env.AGENTE.put('config', JSON.stringify(v.config));
-  const txt = hechos.map((h) => `${h.k} ${JSON.stringify(h.antes)} → ${JSON.stringify(h.despues)}`).join(', ');
-  await bitacora(env, [{ ts: ahora, tipo: 'supervisor', ok: true, texto: `Supervisor IA ajustó predicciones: ${txt}. ${String(s.razon || '').slice(0, 160)}` }]);
-  await avisar(env, [{ kind: 'supervisor', title: '🎲 El supervisor IA ajustó tus predicciones', body: txt.slice(0, 160) }]);
 }
 
 async function avisar(env: Env, items: Json[]) {
@@ -243,13 +166,12 @@ function nuevoId(prefijo: string): string {
   return prefijo + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 function textoOrden(o: Json): string {
-  if (o.tipo === 'prediccion') return `${o.accion === 'COMPRAR' ? 'Compra' : 'Venta'} ${o.unidades} × ${o.etiqueta || o.coin} a ${o.accion === 'COMPRAR' ? '≤' : '≥'} ${o.limite}`;
   return `${o.accion === 'COMPRAR' ? 'Compra' : 'Venta'} ${o.simbolo} ${o.accion === 'COMPRAR' ? `${o.monto} ${o.quote || ''}`.trim() : `${o.pct}%`}${o.limite ? ` si ${o.accion === 'COMPRAR' ? '≤' : '≥'} ${o.limite}` : ''}`;
 }
 
 // Valida lo que llega de la app o de la IA. Devuelve la orden limpia o un error.
 function limpiarOrden(base: Json, c: Json, config: Json): { orden?: Json; error?: string } {
-  if (c.tipo === 'prediccion' || base.tipo === 'prediccion') return limpiarPrediccion(base, c, config);
+  if (c.tipo === 'prediccion' || base.tipo === 'prediccion') return { error: 'Las predicciones no forman parte de TradIA Cloud' };
   const o: Json = { ...base };
   if (c.simbolo !== undefined) { o.simbolo = limpiarSimbolo(c.simbolo); if (!o.simbolo) return { error: 'Moneda inválida' }; }
   if (c.accion !== undefined) {
@@ -279,33 +201,6 @@ function limpiarOrden(base: Json, c: Json, config: Json): { orden?: Json; error?
   return { orden: o };
 }
 
-// Órdenes en mercados de predicción de Hyperliquid: «#N» (N = 10 × mercado + lado),
-// unidades enteras y precio límite = probabilidad (0.001–0.999). Se ejecutan como IOC.
-function limpiarPrediccion(base: Json, c: Json, config: Json): { orden?: Json; error?: string } {
-  const o: Json = { ...base, tipo: 'prediccion' };
-  if (c.coin !== undefined) { if (!/^#\d{2,9}$/.test(String(c.coin))) return { error: 'Mercado inválido' }; o.coin = String(c.coin); }
-  if (c.accion !== undefined) {
-    const a = String(c.accion).toUpperCase();
-    if (!['COMPRAR', 'VENDER'].includes(a)) return { error: 'La acción debe ser COMPRAR o VENDER' };
-    o.accion = a;
-  }
-  if (!o.coin || !o.accion) return { error: 'Falta el mercado o la acción' };
-  const u = Number(c.unidades ?? o.unidades);
-  if (!(Number.isInteger(u) && u >= 1 && u <= 100000)) return { error: 'Unidades: número entero desde 1' };
-  const l = Number(c.limite ?? o.limite);
-  if (!(l >= 0.001 && l <= 0.999)) return { error: 'El precio límite va de 0.001 a 0.999' };
-  o.unidades = u; o.limite = Number(l.toPrecision(5)); o.simbolo = o.coin;
-  if (c.etiqueta !== undefined) o.etiqueta = String(c.etiqueta).slice(0, 90);
-  if (c.pagar_con !== undefined) { const m = c.pagar_con ? limpiarSimbolo(c.pagar_con) : ''; if (m) o.pagar_con = m; else delete o.pagar_con; } // 'USDC' = esta orden solo con USDC
-  if (c.razon !== undefined) o.razon = String(c.razon).slice(0, 240);
-  // Vender con pérdida solo si TÚ lo marcas a propósito (el runner lo bloquea si no).
-  if (c.permitir_perdida !== undefined) { if (c.permitir_perdida === true && o.accion === 'VENDER') o.permitir_perdida = true; else delete o.permitir_perdida; }
-  if (o.accion !== 'VENDER') delete o.permitir_perdida;
-  o.quote = config.quote; delete o.monto; delete o.pct;
-  return { orden: o };
-}
-
-const o_tipo = (n: Json) => (n.tipo === 'prediccion' ? 'Predicción · ' : '');
 async function mezclarOrdenes(env: Env, ahora: number, r: Json): Promise<void> {
   const upd: Json[] = Array.isArray(r.ordenes_upd) ? r.ordenes_upd : [];
   const nuevas: Json[] = Array.isArray(r.ordenes_nuevas) ? r.ordenes_nuevas : [];
@@ -332,7 +227,7 @@ async function mezclarOrdenes(env: Env, ahora: number, r: Json): Promise<void> {
       estado: ['propuesta', 'aprobada', 'ejecutada', 'error'].includes(n.estado) ? n.estado : 'propuesta',
       nota: n.nota || null, error: n.error || null, resultado: n.resultado || null,
       vence: Math.min(ahora + (config.orden_horas || 24) * 3600_000, Number(n.caduca) > ahora ? Number(n.caduca) : Infinity),
-      historia: [{ ts: ahora, quien: 'ia', texto: `${o_tipo(n)}Propuesta con ${n.confianza}% de confianza: ${n.razon || ''}`.trim() }] };
+      historia: [{ ts: ahora, quien: 'ia', texto: `Propuesta con ${n.confianza}% de confianza: ${n.razon || ''}`.trim() }] };
     lista.unshift(o);
     cambio = true;
     eventos.push({ tipo: 'orden', ok: o.estado !== 'error', texto: `IA ${o.estado === 'ejecutada' ? 'ejecutó' : 'propuso'}: ${textoOrden(o)}`, id: o.id });
@@ -384,8 +279,7 @@ async function ordenesApi(env: Env, c: Json): Promise<Response> {
   }
   if ((accion === 'aprobar' || accion === 'cancelar') && o) {
     o.estado = accion === 'aprobar' ? 'aprobada' : 'cancelada';
-    // Predicciones: el precio cambia rápido; aprobada vale 2 h (el ciclo corre cada 30 min).
-    if (accion === 'aprobar') o.vence = o.tipo === 'prediccion' ? ahora + 2 * 3600_000 : Math.max(o.vence || 0, ahora + (config.orden_horas || 24) * 3600_000);
+    if (accion === 'aprobar') o.vence = Math.max(o.vence || 0, ahora + (config.orden_horas || 24) * 3600_000);
     hist(o, 'usuario', accion === 'aprobar' ? 'Aprobada: se ejecuta en el próximo ciclo' : 'Cancelada');
     await guardarOrdenes(env, lista);
     await bitacora(env, [{ ts: ahora, tipo: 'orden', ok: true, texto: `${accion === 'aprobar' ? 'Aprobaste' : 'Cancelaste'}: ${textoOrden(o)}`, id: o.id }]);
@@ -485,8 +379,7 @@ async function runnerReporte(env: Env, r: Json): Promise<Response> {
   const nuevo: Json = {
     ciclo, actualizado: ahora, serie, ultimo: { ...ultimo, ts: ahora },
     historial: historial.slice(-500),
-    runner: { costos: costos ?? estado.runner?.costos ?? {}, cartera_sim: cartera_sim ?? estado.runner?.cartera_sim ?? null,
-      super_ts: r.supervisor?.ts ?? estado.runner?.super_ts ?? null },
+    runner: { costos: costos ?? estado.runner?.costos ?? {}, cartera_sim: cartera_sim ?? estado.runner?.cartera_sim ?? null },
     radar: Array.isArray(radar) && radar.length ? radar : estado.radar || [],
     radar_ts: Array.isArray(radar) && radar.length ? ahora : estado.radar_ts || null,
   };
@@ -498,7 +391,6 @@ async function runnerReporte(env: Env, r: Json): Promise<Response> {
   }
 
   await guardarSenales(env, ciclo, ahora, r);
-  if (r.supervisor && r.supervisor.cambios && Object.keys(r.supervisor.cambios).length) await aplicarSupervisor(env, ahora, r.supervisor);
   await mezclarOrdenes(env, ahora, r);
   await bitacoraCiclo(env, ciclo, ahora, r);
 
@@ -541,13 +433,13 @@ async function runnerConfig(env: Env): Promise<Response> {
   const [config, estado] = await Promise.all([leerConfig(env), leer<Json>(env, 'estado', {})]);
   const ahora = Date.now();
   // Las ya vencidas no se mandan (aunque el ciclo anterior no alcanzara a marcarlas caducadas).
-  const ordenes = (await leerOrdenes(env)).filter((o) => PENDIENTE(o) && !(o.vence && o.vence < ahora));
+  // Órdenes de predicción que quedaran de versiones anteriores no se mandan: ya no se ejecutan aquí.
+  const ordenes = (await leerOrdenes(env)).filter((o) => PENDIENTE(o) && o.tipo !== 'prediccion' && !(o.vence && o.vence < ahora));
   const ia_pref = await env.AGENTE.get('ia_pref');
-  const ordenes_pred = (await leerOrdenes(env)).filter((o) => o.tipo === 'prediccion').slice(0, 20);
   // El runner recibe tus proveedores de IA con sus claves (por HTTPS y con su token):
   // así no hace falta copiarlas a los secretos de GitHub.
   const { lista: ia_proveedores } = await proveedoresIA(env);
-  return json({ config, estado_runner: estado.runner || {}, ordenes, ia_pref, ordenes_pred,
+  return json({ config, estado_runner: estado.runner || {}, ordenes, ia_pref,
     ia_proveedores: ia_proveedores.map((p) => ({ id: p.id, url: p.url, key: p.key, modelos: p.modelos })), ia_consenso: config.ia_consenso });
 }
 
@@ -888,37 +780,16 @@ async function radarAnalizar(env: Env, cuerpo: Json): Promise<Response> {
   return json(datos);
 }
 
-// ---------------------------------------------------------------- Predicciones (Hyperliquid HIP-4)
-// La IA analiza una posición y SUGIERE (mantener, vender o comprar más). TradIA no
-// ejecuta nada: el usuario decide y, si quiere, lo hace en Hyperliquid.
-const prediccionMem = new Map<string, { ts: number; datos: Json }>();
+// ---------------------------------------------------------------- Mercado global
+// Cripto, bolsa, oro y petróleo con datos públicos de Hyperliquid (perps «xyz:» para
+// bolsa y materias primas). Entra en cada decisión de la IA: tono y turbulencia.
 async function hlInfo(cuerpo: Json): Promise<any> {
   const r = await fetch('https://api.hyperliquid.xyz/info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) });
   if (!r.ok) throw new Error(`Hyperliquid HTTP ${r.status}`);
   return r.json();
 }
-function campos(desc: unknown): Json {
-  const out: Json = {};
-  for (const parte of String(desc || '').split('|')) { const i = parte.indexOf(':'); if (i > 0) out[parte.slice(0, i).trim()] = parte.slice(i + 1).trim(); }
-  return out;
-}
-function venceMs(t: unknown): number | null {
-  const m = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(String(t || ''));
-  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null;
-}
-// Φ(x) (Abramowitz-Stegun 7.1.26).
-function normal(x: number): number {
-  const t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
-  const e = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x / 2);
-  return x >= 0 ? (1 + e) / 2 : (1 - e) / 2;
-}
-// Probabilidad de que el precio termine ≥ objetivo con un modelo log-normal y la
-// volatilidad por hora del plazo (1 h / 24 h / 48 h por tramos). Referencia, no certeza.
-function probModelo(ahora: number, objetivo: number, sigmaH: number, horas: number): number | null {
-  if (!(ahora > 0 && objetivo > 0 && sigmaH > 0 && horas > 0)) return null;
-  const s = sigmaH * Math.sqrt(horas);
-  return normal((Math.log(ahora / objetivo) - s * s / 2) / s);
-}
+const NOMBRES_SUB: Json = { 'xyz:XYZ100': 'Nasdaq 100', 'xyz:SP500': 'S&P 500', 'xyz:CL': 'Petróleo WTI', 'xyz:BRENTOIL': 'Petróleo Brent', 'xyz:GOLD': 'Oro', 'xyz:SILVER': 'Plata', 'xyz:SPCX': 'SpaceX' };
+const nombreSub = (s: string) => NOMBRES_SUB[s] || s.replace(/^xyz:/, '');
 // Volatilidad por hora en tres ventanas, con velas de 15 min de las últimas 49 h
 // (una sola petición por activo: el plan gratis de Cloudflare permite 50 por llamada):
 //  · 1 h: rango alto-bajo de las 4 últimas velas (Parkinson, más estable que 4 cierres);
@@ -954,12 +825,6 @@ async function volatilidades(subyacentes: string[]): Promise<Json> {
   }));
   return out;
 }
-// Volatilidad para un plazo de h horas, por tramos: la primera hora con la vol de 1 h,
-// hasta 24 h con la de 24 h y el resto con la de 48 h (varianzas que se suman).
-function sigmaPlazo(v: Json, h: number): number {
-  const var_ = v.sigma_1h ** 2 * Math.min(h, 1) + v.sigma_24h ** 2 * Math.min(Math.max(h - 1, 0), 23) + v.sigma_48h ** 2 * Math.max(h - 24, 0);
-  return Math.sqrt(var_ / h);
-}
 // Movimiento típico (1 desviación) en %, para mostrar.
 const movTipico = (v: Json) => ({ h1: Math.round(v.sigma_1h * 10000) / 100, h24: Math.round(v.sigma_24h * Math.sqrt(24) * 10000) / 100, h48: Math.round(v.sigma_48h * Math.sqrt(48) * 10000) / 100 });
 // ---- Mercado global: cripto, bolsa, oro y petróleo en 1 h / 24 h / 48 h. Entra en
@@ -984,401 +849,18 @@ function mercadoGlobal(mids: Json, vol: Json, ahora: number): Json {
   const resumen = `24 h: cripto ${f(cripto)}, bolsa ${f(bolsa)}, oro ${f(oro)}, petróleo ${f(petroleo)}. ` +
     (tono === 'alcista' ? 'Apetito por riesgo (todo sube).' : tono === 'bajista' ? 'Aversión al riesgo (cripto y bolsa caen).' : 'Tono mixto.') +
     (refugio ? ' El oro sube mientras la bolsa baja: buscan refugio.' : '') +
-    (turbulencia ? ` Turbulencia: la última hora se mueve mucho más que lo normal (${turb.map((a) => a.nombre).join(', ')}); TradIA exige más ventaja.` : ' Volatilidad normal.');
+    (turbulencia ? ` Turbulencia: la última hora se mueve mucho más que lo normal (${turb.map((a) => a.nombre).join(', ')}); TradIA exige más confianza para comprar.` : ' Volatilidad normal.');
   return { ts: ahora, activos, cripto_24h_pct: cripto, bolsa_24h_pct: bolsa, oro_24h_pct: oro, petroleo_24h_pct: petroleo, tono, refugio, turbulencia, resumen };
 }
-// Mejor comprador y mejor vendedor ahora (libro público de Hyperliquid).
-async function prediccionLibro(url: URL): Promise<Response> {
-  const coin = String(url.searchParams.get('coin') || '');
-  if (!/^#\d{2,9}$/.test(coin)) return json({ error: 'Mercado inválido' }, 400);
-  const d: Json = await hlInfo({ type: 'l2Book', coin });
-  const [compras, ventas] = d?.levels || [[], []];
-  const nivel = (x: Json | undefined) => (x ? { precio: Number(x.px), unidades: Number(x.sz) } : null);
-  return json({ coin, ts: Date.now(), mejor_compra: nivel(compras[0]), mejor_venta: nivel(ventas[0]),
-    compras: compras.slice(0, 5).map(nivel), ventas: ventas.slice(0, 5).map(nivel) });
-}
-// Gráficas para decidir: probabilidad del lado (velas 15 min, 48 h) y precio del
-// subyacente en 1H/4H/1D con la línea del objetivo. Datos públicos de Hyperliquid.
-const graficaPredMem = new Map<string, { ts: number; datos: Json }>();
-async function prediccionGrafica(url: URL): Promise<Response> {
-  const coin = String(url.searchParams.get('coin') || '').replace(/^\+/, '#');
-  if (!/^#\d{2,9}$/.test(coin)) return json({ error: 'Mercado inválido' }, 400);
-  const mem = graficaPredMem.get(coin);
-  if (mem && Date.now() - mem.ts < 60_000) return json({ ...mem.datos, cache: true });
-  const cod = Number(coin.slice(1)), mercado = Math.floor(cod / 10), lado = cod % 10;
-  const todo = await listaMercados(), lista: Json[] = todo.mercados || [];
-  const m = lista.find((x) => x.mercado === mercado);
-  if (!m) return json({ error: 'Ese mercado ya no está abierto.' }, 404);
-  const ahora = Date.now(), ld = m.lados[lado] || {};
-  const velas = async (c: string, intervalo: string, horas: number) => {
-    try {
-      const v: Json[] = await hlInfo({ type: 'candleSnapshot', req: { coin: c, interval: intervalo, startTime: ahora - horas * 3_600_000, endTime: ahora } });
-      return { t: v.map((x) => Number(x.t)), c: v.map((x) => Number(x.c)) };
-    } catch { return { t: [], c: [] }; }
-  };
-  const [prob, h1, h4, d1] = await Promise.all([
-    velas(coin, '15m', 48),
-    m.subyacente ? velas(m.subyacente, '1h', 100) : null,
-    m.subyacente ? velas(m.subyacente, '4h', 400) : null,
-    m.subyacente ? velas(m.subyacente, '1d', 2400) : null,
-  ]);
-  const datos: Json = { coin, mercado, lado, pregunta: m.pregunta, lado_nombre: ld.nombre, precio_lado: ld.precio ?? null, ventaja: ld.ventaja ?? null,
-    prob_modelo: ld.prob_modelo ?? null, regla: m.regla, tipo: m.tipo, lineas: m.lineas || [], nombre_sub: m.nombre_sub,
-    subyacente: m.subyacente, objetivo: m.objetivo, precio_actual: m.precio_actual ?? null, vence: m.vence, ts: ahora, prob,
-    lados: m.lados, mov: m.mov || null, regimen: m.regimen || null, cambio_1h_pct: m.cambio_1h_pct ?? null, cambio_24h_pct: m.cambio_24h_pct ?? null, cambio_48h_pct: m.cambio_48h_pct ?? null,
-    sigma_plazo_pct: m.sigma_plazo_pct ?? null,
-    marcos: m.subyacente ? { '1h': h1, '4h': h4, '1d': d1 } : null, global: todo.global || null };
-  graficaPredMem.set(coin, { ts: ahora, datos });
-  return json(datos);
-}
-// ---- Lectura de los mercados de Hyperliquid (HIP-4). Sin deportes. Categorías:
-// cripto (hoy / mediano plazo), bolsa y materias primas (perps «xyz:»), economía
-// y empresas (tasa de la Fed, salidas a bolsa) y otros.
-const NOMBRES_SUB: Json = { 'xyz:XYZ100': 'Nasdaq 100', 'xyz:SP500': 'S&P 500', 'xyz:CL': 'Petróleo WTI', 'xyz:BRENTOIL': 'Petróleo Brent', 'xyz:GOLD': 'Oro', 'xyz:SILVER': 'Plata', 'xyz:SPCX': 'SpaceX' };
-const nombreSub = (s: string) => NOMBRES_SUB[s] || s.replace(/^xyz:/, '');
-// Miles con espacio (85 501) para que no se confundan con decimales (88.303).
-const cifra = (n: number) => (n >= 1000 ? String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : String(Number(n.toPrecision(6))));
-// Quién crea el mercado («venue»). Sin venue = Hyperliquid; los demás son creadores
-// externos con HYPE en garantía. deployerFeeScale > 0 = comisión al vender más alta.
-const CREADORES: Json = { '': 'Hyperliquid', out: 'out', skew: 'skew', txyz: 'trade.xyz' };
-const ES_DEPORTE = /sport|award|contest/i;
-const HORAS_HOY = 36;
-function nombreLado(n: unknown): string {
-  const x = String(n || '').replace(/^template:/, '');
-  return x === 'Yes' ? 'Sí' : x === 'Over' ? 'Más' : x === 'Under' ? 'Menos' : x;
-}
-function fechaCorta(ms: number | null): string {
-  return ms ? new Date(ms).toLocaleDateString('es', { day: 'numeric', month: 'short', timeZone: 'UTC' }) : '';
-}
-// Qué pregunta un mercado y cómo modelarlo. null = deportes o relleno («otro resultado»).
-function leerMercado(o: Json, q: Json | undefined): Json | null {
-  const nombre = String(o.name || ''), desc = String(o.description || ''), c = campos(desc), cq = q ? campos(q.description) : {};
-  if (ES_DEPORTE.test(nombre) || ES_DEPORTE.test(String(q?.name || '')) || c.participant || c.competition || c.candidate || cq.sport || cq.competition || cq.award) return null;
-  if (/fallback/i.test(nombre) || desc === 'other') return null;
-  const perp = desc.startsWith('perp:') ? desc.split('|')[0].slice(5) : null;
-  if (c.class === 'priceBinary' && c.underlying) return { tipo: 'precio', sub: c.underlying, objetivo: Number(c.targetPrice), vence: venceMs(c.expiry) };
-  if (nombre === 'template:binaryPrice' && perp) return { tipo: 'precio', sub: perp, objetivo: Number(c.threshold), vence: venceMs(c.time), fuente: c.priceDescription };
-  if (nombre === 'template:priceTouch' && perp) return { tipo: 'toque', sub: perp, objetivo: Number(c.target), vence: venceMs(c.time), fuente: c.priceDescription };
-  if (nombre === 'template:binaryPriceExternal') return { tipo: 'precio', externo: c.shortName || c.instrument, objetivo: Number(c.threshold), vence: venceMs(c.time), fuente: c.priceDescription };
-  if (cq.class === 'priceBucket' && cq.underlying && c.index != null) {
-    const t = String(cq.priceThresholds || '').split(',').map(Number).filter((x) => x > 0), k = Number(c.index);
-    return { tipo: 'rango', sub: cq.underlying, desde: k > 0 ? t[k - 1] : null, hasta: k < t.length ? t[k] : null, vence: venceMs(cq.expiry) };
-  }
-  if (/^template:policyRate/.test(nombre)) {
-    const quien = /federal/i.test(String(cq.institution || '')) ? 'la Fed' : String(cq.institution || 'el banco central');
-    const que = /NoChange/.test(nombre) ? 'mantiene' : /Decrease/.test(nombre) ? 'baja' : 'sube';
-    return { tipo: 'evento', categoria: 'economia', pregunta: `¿${quien[0].toUpperCase() + quien.slice(1)} ${que} la tasa de interés (${cq.decisionLabel || 'próxima decisión'})?`,
-      regla: `«Sí» gana si ${quien} ${que} la tasa en esa decisión.`, vence: venceMs(cq.scheduledDecision) ?? venceMs(cq.decisionDeadline) };
-  }
-  if (nombre === 'template:companyIpoConfirmed') {
-    const v = venceMs(c.dateTime);
-    return { tipo: 'evento', categoria: 'economia', pregunta: `¿${c.company} confirma su salida a bolsa antes del ${fechaCorta(v)}?`, regla: `«Sí» gana si ${c.company} confirma oficialmente su salida a bolsa antes del ${fechaCorta(v)}.`, vence: v };
-  }
-  if (nombre === 'template:companyIpoFirstDayMarketCap') {
-    const b = Number(c.marketCapThresholdB);
-    return { tipo: 'evento', categoria: 'economia', pregunta: `¿${c.company} vale ${b >= 1000 ? cifra(b / 1000) + ' billones' : cifra(b) + ' mil millones'} de USD o más en su primer día en bolsa?`,
-      regla: `«Sí» gana si ${c.company} sale a bolsa antes del ${fechaCorta(venceMs(c.listingDeadline))} y cierra su primer día con ese valor o más.`, vence: venceMs(c.listingDeadline) };
-  }
-  const n2 = nombre.replace(/^template:/, '');
-  return { tipo: 'evento', categoria: 'otro', pregunta: desc && desc !== 'other' ? `${n2} · ${desc.slice(0, 80)}` : n2, vence: venceMs(cq.resolutionDeadline) };
-}
-function probSobre(ahora: number, nivel: number, sigmaH: number, horas: number): number | null {
-  return probModelo(ahora, nivel, sigmaH, horas);
-}
-// Probabilidad de TOCAR un nivel antes de vencer (principio de reflexión, sin tendencia).
-function probToque(ahora: number, nivel: number, sigmaH: number, horas: number): number | null {
-  if (!(ahora > 0 && nivel > 0 && sigmaH > 0 && horas > 0)) return null;
-  return Math.min(1, 2 * (1 - normal(Math.abs(Math.log(nivel / ahora)) / (sigmaH * Math.sqrt(horas)))));
-}
-let mercadosMem: { ts: number; datos: Json } | null = null;
-async function listaMercados(): Promise<Json> {
-  if (mercadosMem && Date.now() - mercadosMem.ts < 60_000) return { ...mercadosMem.datos, cache: true };
-  const [meta, mids, midsXyz] = await Promise.all([hlInfo({ type: 'outcomeMeta' }), hlInfo({ type: 'allMids' }), hlInfo({ type: 'allMids', dex: 'xyz' }).catch(() => ({}))]);
-  const todos: Json = { ...mids, ...midsXyz };
-  const preguntas: Json = {};
-  for (const q of meta.questions || []) for (const n of [...(q.namedOutcomes || []), q.fallbackOutcome]) preguntas[n] = q;
-  const ahora = Date.now(), lista: Json[] = [];
-  for (const o of meta.outcomes || []) {
-    const m = leerMercado(o, preguntas[o.outcome]);
-    if (!m) continue;
-    if (m.vence && m.vence < ahora) continue;
-    if (m.externo && todos['xyz:' + m.externo]) m.sub = 'xyz:' + m.externo;
-    const lados = (o.sideSpecs || []).map((sd: Json, i: number) => {
-      const cod = o.outcome * 10 + i;
-      return { nombre: nombreLado(sd.name), coin: `#${cod}`, precio: todos[`#${cod}`] != null ? Number(todos[`#${cod}`]) : null };
-    });
-    if (!lados.some((l: Json) => l.precio != null)) continue;
-    // 0.5 / 0.5 exactos = libro vacío: ese precio no es real y la «ventaja» sería falsa.
-    const sinOfertas = lados.length === 2 && lados.every((l: Json) => l.precio === 0.5);
-    const N = m.sub ? nombreSub(m.sub) : m.externo || '';
-    let pregunta = m.pregunta, regla = m.regla, lineas: Json[] = [];
-    if (m.tipo === 'precio') { pregunta = `¿${N} ≥ ${cifra(m.objetivo)} al vencer?`; regla = `«Sí» gana si ${N} está en ${cifra(m.objetivo)} o más al vencer.`; lineas = [{ p: m.objetivo, t: 'objetivo' }]; }
-    if (m.tipo === 'toque') { pregunta = `¿${N} toca ${cifra(m.objetivo)} antes del ${fechaCorta(m.vence)}?`; regla = `«Sí» gana si ${N} toca ${cifra(m.objetivo)} en cualquier momento antes de vencer.`; lineas = [{ p: m.objetivo, t: 'toque' }]; }
-    if (m.tipo === 'rango') {
-      pregunta = m.desde == null ? `¿${N} < ${cifra(m.hasta)} al vencer?` : m.hasta == null ? `¿${N} ≥ ${cifra(m.desde)} al vencer?` : `¿${N} entre ${cifra(m.desde)} y ${cifra(m.hasta)} al vencer?`;
-      regla = `«Sí» gana si al vencer ${N} está ${m.desde == null ? `por debajo de ${cifra(m.hasta)}` : m.hasta == null ? `en ${cifra(m.desde)} o más` : `entre ${cifra(m.desde)} y ${cifra(m.hasta)}`}.`;
-      lineas = [m.desde, m.hasta].filter((x) => x != null).map((p) => ({ p, t: 'límite' }));
-    }
-    // Cada creador resuelve con su propia fuente de precio (p. ej. skew usa Pyth).
-    if (m.fuente && regla) regla += ` Se resuelve con: ${m.fuente}.`;
-    const horas = m.vence ? Math.round((m.vence - ahora) / 360_000) / 10 : null;
-    const categoria = m.categoria || (m.sub ? (m.sub.startsWith('xyz:') ? 'bolsa' : 'cripto') : m.externo ? 'bolsa' : 'otro');
-    lista.push({ mercado: o.outcome, pregunta, regla: regla || null, tipo: m.tipo, categoria, plazo: horas != null && horas <= HORAS_HOY ? 'hoy' : 'mediano',
-      subyacente: m.sub || null, nombre_sub: N || null, objetivo: m.tipo === 'rango' ? null : m.objetivo ?? null, desde: m.desde ?? null, hasta: m.hasta ?? null, lineas,
-      vence: m.vence || null, horas, lados, quote: o.quoteToken || 'USDC', sin_ofertas: sinOfertas || undefined,
-      creador: CREADORES[String(o.venue || '')] || String(o.venue), comision_doble: Number(o.deployerFeeScale) > 0 || undefined });
-  }
-  // Primero los activos del mercado global, luego los subyacentes con más mercados.
-  const usos: Json = {};
-  for (const m of lista) if (m.subyacente && todos[m.subyacente]) usos[m.subyacente] = (usos[m.subyacente] || 0) + 1;
-  const subs = [...GLOBALES.filter((g) => todos[g] != null), ...Object.keys(usos).filter((u) => !GLOBALES.includes(u)).sort((a, b) => usos[b] - usos[a])];
-  const vol = await volatilidades(subs);
-  for (const m of lista) {
-    if (!m.subyacente || !todos[m.subyacente]) continue;
-    const S = Number(todos[m.subyacente]), v = vol[m.subyacente];
-    m.precio_actual = S;
-    if (m.objetivo) m.distancia_pct = Math.round((S / m.objetivo - 1) * 10000) / 100;
-    if (!v || !m.horas || m.horas <= 0) continue;
-    Object.assign(m, { cambio_1h_pct: v.cambio_1h_pct, cambio_24h_pct: v.cambio_24h_pct, cambio_48h_pct: v.cambio_48h_pct, regimen: v.regimen, mov: movTipico(v) });
-    const sg = sigmaPlazo(v, m.horas);
-    m.sigma_plazo_pct = Math.round(sg * Math.sqrt(m.horas) * 10000) / 100;
-    let p: number | null = null;
-    if (m.tipo === 'precio') p = probSobre(S, m.objetivo, sg, m.horas);
-    else if (m.tipo === 'toque') p = probToque(S, m.objetivo, sg, m.horas);
-    else if (m.tipo === 'rango') {
-      const a = m.desde == null ? 1 : probSobre(S, m.desde, sg, m.horas), b = m.hasta == null ? 0 : probSobre(S, m.hasta, sg, m.horas);
-      p = a != null && b != null ? Math.max(0, a - b) : null;
-    }
-    if (p == null) continue;
-    m.prob_modelo = Math.round(p * 1000) / 10;
-    // Ventaja = probabilidad del modelo − precio del mercado, para cada lado.
-    m.lados.forEach((l: Json, i: number) => {
-      const pl = i === 0 ? p! : 1 - p!;
-      l.prob_modelo = Math.round(pl * 1000) / 10;
-      if (l.precio != null && !m.sin_ofertas) l.ventaja = Math.round((pl - l.precio) * 1000) / 10;
-    });
-  }
-  const orden: Json = { cripto: 0, bolsa: 1, economia: 2, otro: 3 };
-  lista.sort((a, b) => orden[a.categoria] - orden[b.categoria] || (a.vence || 9e15) - (b.vence || 9e15));
-  const cuenta: Json = {};
-  for (const m of lista) { const k = m.categoria === 'cripto' ? `cripto_${m.plazo}` : m.categoria; cuenta[k] = (cuenta[k] || 0) + 1; }
-  const datos = { ts: ahora, mercados: lista.slice(0, 200), total: lista.length, cuenta, global: mercadoGlobal(todos, vol, ahora) };
-  mercadosMem = { ts: ahora, datos };
+let globalMem: { ts: number; datos: Json } | null = null;
+async function contextoGlobal(): Promise<Json> {
+  if (globalMem && Date.now() - globalMem.ts < 60_000) return globalMem.datos;
+  const [mids, midsXyz] = await Promise.all([hlInfo({ type: 'allMids' }), hlInfo({ type: 'allMids', dex: 'xyz' }).catch(() => ({}))]);
+  const todos: Json = { ...mids, ...midsXyz }, ahora = Date.now();
+  const vol = await volatilidades(GLOBALES.filter((g) => todos[g] != null));
+  const datos = { ts: ahora, global: mercadoGlobal(todos, vol, ahora) };
+  globalMem = { ts: ahora, datos };
   return datos;
-}
-async function prediccionMercados(): Promise<Response> {
-  return json(await listaMercados());
-}
-
-async function prediccionAnalizar(env: Env, c: Json): Promise<Response> {
-  // Una posición tuya («+N»), un lado de un mercado («mercado» + «lado») o el mercado
-  // completo («mercado» sin lado): entonces la IA elige entre comprar Sí, No o no entrar.
-  const explorar = c.mercado != null;
-  const ambos = explorar && (c.lado == null || c.lado === '');
-  const coin = explorar ? `+${Number(c.mercado) * 10 + (Number(c.lado) ? 1 : 0)}` : String(c.coin || '');
-  if (!/^\+\d+$/.test(coin)) return json({ error: 'Predicción inválida' }, 400);
-  const clave = ambos ? `m${Number(c.mercado)}` : coin;
-  const mem = prediccionMem.get(clave);
-  if (mem && Date.now() - mem.ts < 10 * 60_000) return json({ ...mem.datos, cache: true });
-  const estado = await leer<Json>(env, 'estado', {});
-  const mias: Json[] = estado.ultimo?.predicciones || [];
-  let p = mias.find((x) => x.coin === coin);
-  // Datos del mercado (regla, modelo, volatilidad) de la lista abierta, tengas o no posición.
-  const cod0 = Number(coin.slice(1)), todo: Json = await listaMercados().catch(() => ({ mercados: [] }));
-  const lista: Json[] = todo.mercados || [];
-  const mm = lista.find((x) => x.mercado === Math.floor(cod0 / 10)), ld = mm?.lados[cod0 % 10];
-  if (!p && explorar && mm) p = { coin, pregunta: mm.pregunta, lado_nombre: ld?.nombre, cantidad: 0, pago_si_acierta: 0, vence: mm.vence };
-  if (p && mm) Object.assign(p, { subyacente: mm.subyacente, objetivo: mm.objetivo, regla: mm.regla, tipo: mm.tipo, prob_modelo_lado: ld?.prob_modelo ?? null, desde: mm.desde, hasta: mm.hasta });
-  if (!p) return json({ error: explorar ? 'Ese mercado ya no está abierto.' : 'Esa predicción no está en tu último ciclo: espera al próximo.' }, 404);
-  if (p.vence && p.vence < Date.now()) return json({ error: 'Esta predicción ya venció: se liquida sola.' }, 409);
-  // Si ya tienes un lado de este mercado, el análisis completo lo tiene en cuenta.
-  const tuya = ambos && mm ? mias.find((x) => Math.floor(Number(String(x.coin).slice(1)) / 10) === mm.mercado) : null;
-  const mercado: Json = { pregunta: p.pregunta, regla: p.regla || null, tipo_mercado: p.tipo || null,
-    rango: p.tipo === 'rango' ? [p.desde, p.hasta] : undefined, horas_para_vencer: p.vence ? Math.round((p.vence - Date.now()) / 360_000) / 10 : null };
-  if (ambos) {
-    mercado.lados = (mm?.lados || []).map((l: Json) => ({ lado: l.nombre, precio: l.precio, prob_modelo_pct: l.prob_modelo ?? null, ventaja_pts: l.ventaja ?? null }));
-    if (tuya) mercado.ya_tienes = { lado: tuya.lado_nombre, unidades: tuya.cantidad };
-  } else Object.assign(mercado, { tu_lado: p.lado_nombre, unidades: p.cantidad, pago_si_aciertas: p.pago_si_acierta, tiene_posicion: (p.cantidad || 0) > 0,
-    prob_modelo_estadistico_tu_lado_pct: p.prob_modelo_lado ?? null });
-  // Volatilidad del subyacente en 1 h / 24 h / 48 h y el mercado global.
-  if (mm?.mov) Object.assign(mercado, { movimiento_tipico_pct: mm.mov, regimen_volatilidad: mm.regimen, cambio_1h_pct: mm.cambio_1h_pct, cambio_48h_pct: mm.cambio_48h_pct,
-    movimiento_esperado_hasta_vencer_pct: mm.sigma_plazo_pct });
-  const global = todo.global || null;
-  // Datos frescos y públicos: probabilidad actual, precio del subyacente y sus últimas 24 h.
-  try {
-    const [m1, m2] = await Promise.all([hlInfo({ type: 'allMids' }), hlInfo({ type: 'allMids', dex: 'xyz' }).catch(() => ({}))]);
-    const mids: Json = { ...m1, ...m2 }, cod = coin.slice(1);
-    if (ambos) (mm?.lados || []).forEach((l: Json, i: number) => { if (mids[l.coin] != null) mercado.lados[i].precio = Number(mids[l.coin]); });
-    else {
-      mercado.precio_tu_lado = Number(mids['#' + cod] ?? p.precio);
-      mercado.prob_mercado_tu_lado_pct = Math.round(mercado.precio_tu_lado * 1000) / 10;
-    }
-    if (p.subyacente && mids[p.subyacente]) {
-      const ahora = Number(mids[p.subyacente]);
-      mercado.subyacente = p.subyacente; mercado.precio_actual = ahora; mercado.objetivo = p.objetivo;
-      mercado.distancia_al_objetivo_pct = p.objetivo ? Math.round((ahora / p.objetivo - 1) * 10000) / 100 : null;
-      const velas: Json[] = await hlInfo({ type: 'candleSnapshot', req: { coin: p.subyacente, interval: '1h', startTime: Date.now() - 7 * 24 * 3_600_000, endTime: Date.now() } });
-      const todas = velas.map((v) => Number(v.c)).filter((x) => x > 0), cierres = todas.slice(-25);
-      if (todas.length > 30) {
-        mercado.cambio_7d_pct = Math.round((ahora / todas[0] - 1) * 10000) / 100;
-        mercado.rango_7d = [Math.min(...todas), Math.max(...todas)];
-      }
-      if (cierres.length > 2) {
-        const max = Math.max(...cierres), min = Math.min(...cierres);
-        mercado.cambio_24h_pct = Math.round((ahora / cierres[0] - 1) * 10000) / 100;
-        mercado.rango_24h = [min, max];
-        mercado.rango_24h_pct = Math.round((max / min - 1) * 10000) / 100;
-      }
-    }
-  } catch (e: any) {
-    mercado.aviso = `Sin datos frescos de Hyperliquid (${String(e?.message || e).slice(0, 80)})`;
-    if (!ambos) mercado.precio_tu_lado = p.precio;
-  }
-  const nombres: string[] = ambos ? (mm?.lados || []).map((l: Json) => String(l.nombre)) : [];
-  const pide = ambos
-    ? `El usuario mira este mercado completo y quiere saber si comprar un lado. Sugiere UNA acción: COMPRAR con "lado" = ${nombres.map((n) => `"${n}"`).join(' o ')}, o NO ENTRAR (lado null).${mercado.ya_tienes ? ' Ya tiene posición en este mercado: tenlo en cuenta.' : ''}`
-    : mercado.tiene_posicion ? 'Sugiere UNA acción: MANTENER (esperar al vencimiento), VENDER (cerrar ahora al precio del mercado) o COMPRAR MÁS.' : 'El usuario aún NO tiene posición en este lado: sugiere COMPRAR (entrar en este lado) o NO ENTRAR.';
-  const t0 = Date.now();
-  const { datos: d, modelo } = await iaChat(env, [
-    { role: 'system', content: 'Eres un analista prudente de mercados de predicción. Explicas a un principiante en español sencillo. No prometes resultados. Respondes SOLO JSON válido.' },
-    { role: 'user', content: `Mercado de predicción de Hyperliquid (cada unidad paga 1 si acierta y 0 si no; el precio es la probabilidad que le da el mercado):\n${JSON.stringify(mercado)}\nMercado global ahora: ${global ? JSON.stringify({ resumen: global.resumen, tono: global.tono, turbulencia: global.turbulencia }) : 'sin datos'}\n` +
-      `Lee la regla. Si depende de un precio, compara precio actual con objetivo, el tiempo que queda y cuánto se mueve: «movimiento_tipico_pct» es 1 desviación en 1 h, 24 h y 48 h; «movimiento_esperado_hasta_vencer_pct» es la que usa el modelo hasta el vencimiento; si el régimen es «turbulento», la última hora se mueve mucho más que lo normal. Ten en cuenta el mercado global (tono de riesgo, refugio, turbulencia) y la tendencia de 1 h / 24 h / 48 h. Si es un evento (economía, empresas), usa lo que sepas y di claramente si tu información puede estar desactualizada. Compara tu probabilidad con la del mercado. ${pide}\n` +
-      `Formato: {"sugerencia":"${ambos ? 'COMPRAR|NO ENTRAR' : 'MANTENER|VENDER|COMPRAR MÁS|COMPRAR|NO ENTRAR'}",${ambos ? '"lado":"' + (nombres[0] || 'Sí') + '",' : ''}"confianza":0-100,"prob_estimada":0-100,"analisis":"2-4 frases","riesgos":["..."]}${ambos ? ' (prob_estimada = probabilidad de que el lado sugerido acierte; si NO ENTRAR, la de «' + (nombres[0] || 'Sí') + '»)' : ''}` },
-  ]);
-  let sug: string, ladoSug: number | null = null;
-  if (ambos) {
-    const i = nombres.findIndex((n) => n.toLowerCase() === String(d.lado || '').trim().toLowerCase() || (n === 'Sí' && /^s[ií]$|^yes$/i.test(String(d.lado || '').trim())));
-    sug = String(d.sugerencia).toUpperCase() === 'COMPRAR' && i >= 0 ? 'COMPRAR' : 'NO ENTRAR';
-    if (sug === 'COMPRAR') ladoSug = i;
-  } else {
-    const validas = mercado.tiene_posicion ? ['MANTENER', 'VENDER', 'COMPRAR MÁS'] : ['COMPRAR', 'NO ENTRAR'];
-    sug = validas.includes(String(d.sugerencia).toUpperCase()) ? String(d.sugerencia).toUpperCase() : validas[0] === 'MANTENER' ? 'MANTENER' : 'NO ENTRAR';
-  }
-  const datos: Json = {
-    coin: ladoSug != null ? `+${mm!.mercado * 10 + ladoSug}` : coin, modelo, mercado, sugerencia: ladoSug != null ? `COMPRAR ${nombres[ladoSug].toUpperCase()}` : sug,
-    confianza: Math.max(0, Math.min(100, Number(d.confianza) || 0)),
-    prob_estimada: Number.isFinite(Number(d.prob_estimada)) ? Math.max(0, Math.min(100, Number(d.prob_estimada))) : null,
-    analisis: String(d.analisis || '').slice(0, 800),
-    riesgos: (Array.isArray(d.riesgos) ? d.riesgos : []).slice(0, 4).map((x: unknown) => String(x).slice(0, 160)),
-    global: global ? { resumen: global.resumen, tono: global.tono, turbulencia: global.turbulencia } : null,
-    ts: Date.now(),
-  };
-  if (ambos) Object.assign(datos, { mercado_id: mm!.mercado, lado_sugerido: ladoSug, lado_nombre: ladoSug != null ? nombres[ladoSug] : null });
-  prediccionMem.set(clave, { ts: Date.now(), datos });
-  await bitacora(env, [{ ts: Date.now(), tipo: 'ia', ok: true, modelo, ms: Date.now() - t0, texto: `IA (predicción ${p.pregunta}${ambos ? '' : ' · ' + p.lado_nombre}) sugirió ${datos.sugerencia} con ${modelo} en ${((Date.now() - t0) / 1000).toFixed(1)} s` }]);
-  return json(datos);
-}
-
-// «Pedir a la IA» en la pestaña 🎲: el usuario escribe qué quiere y la IA propone
-// órdenes de predicción concretas. Quedan como «propuesta» (el usuario aprueba),
-// con el mejor precio real del libro como límite.
-function relevantes(lista: Json[], instruccion: string): Json[] {
-  const t = instruccion.toLowerCase();
-  const palabras = t.split(/[^a-z0-9áéíóúñ&]+/).filter((w) => w.length >= 3);
-  const quiere = (re: RegExp) => re.test(t);
-  const puntos = (m: Json) => {
-    const txt = `${m.pregunta} ${m.nombre_sub || ''} ${m.subyacente || ''} ${m.categoria}`.toLowerCase();
-    let p = palabras.reduce((a, w) => a + (txt.includes(w) ? 3 : 0), 0);
-    if (quiere(/hoy|corto|ahora|rápid/) && m.plazo === 'hoy') p += 2;
-    if (quiere(/mediano|largo|semana|mes|noviembre|octubre/) && m.plazo === 'mediano') p += 2;
-    if (quiere(/bolsa|acci|índice|indice|oro|plata|petr|s&p|nasdaq/) && m.categoria === 'bolsa') p += 2;
-    if (quiere(/fed|tasa|econom|empresa|ipo|bolsa de valores|anthropic|openai/) && m.categoria === 'economia') p += 2;
-    if (quiere(/cripto|btc|eth|sol|hype|bitcoin/) && m.categoria === 'cripto') p += 2;
-    if (quiere(/ventaja|oportunidad|mejor|barat/)) p += Math.max(0, ...m.lados.map((l: Json) => l.ventaja || 0)) / 5;
-    return p;
-  };
-  return lista.filter((m) => !m.sin_ofertas).map((m) => ({ m, p: puntos(m) })).sort((a, b) => b.p - a.p || (a.m.vence || 9e15) - (b.m.vence || 9e15)).slice(0, 35).map((x) => x.m);
-}
-
-async function prediccionPedir(env: Env, c: Json): Promise<Response> {
-  const instruccion = String(c.instruccion || '').trim().slice(0, 400);
-  if (!instruccion) return json({ error: 'Escribe qué quieres que busque la IA' }, 400);
-  const [config, estado, lista0] = await Promise.all([leerConfig(env), leer<Json>(env, 'estado', {}), listaMercados()]);
-  const lista: Json[] = lista0.mercados || [];
-  const mias: Json[] = estado.ultimo?.predicciones || [];
-  const libre = estado.ultimo?.libre ?? null;
-  const filas = relevantes(lista, instruccion).map((m) => ({ q: m.pregunta, cat: m.categoria === 'cripto' ? `cripto_${m.plazo}` : m.categoria, horas: m.horas,
-    ahora: m.precio_actual ?? undefined, regla: m.regla || undefined, mov_1h_24h_48h_pct: m.mov ? [m.mov.h1, m.mov.h24, m.mov.h48] : undefined,
-    cambio_1h_24h_pct: m.mov ? [m.cambio_1h_pct, m.cambio_24h_pct] : undefined, turbulento: m.regimen === 'turbulento' || undefined,
-    lados: m.lados.map((l: Json) => ({ coin: l.coin, lado: l.nombre, precio: l.precio, modelo_pct: l.prob_modelo ?? undefined, ventaja: l.ventaja ?? undefined })) }));
-  const pos = mias.map((p) => ({ coin: '#' + String(p.coin).slice(1), q: p.pregunta, lado: p.lado_nombre, unidades: p.cantidad, precio: p.precio,
-    pagaste: p.costo ?? undefined, vender_solo_desde: p.min_venta ?? undefined }));
-  const t0 = Date.now(), ahora = Date.now();
-  let d: Json, modelo: string;
-  try {
-    ({ datos: d, modelo } = await iaChat(env, [
-      { role: 'system', content: 'Preparas órdenes en mercados de predicción de Hyperliquid para un usuario principiante. Prudente: si nada convence, no propongas nada y explícalo. Nunca inventas mercados: usa solo los «coin» de la lista. Respondes SOLO JSON válido en español.' },
-      { role: 'user', content: `El usuario pide: "${instruccion}"
-Cada unidad paga 1 USDC si acierta y 0 si no; «precio» es el precio MEDIO (la compra real se paga al vendedor más barato, que puede ser bastante más caro; TradIA lo comprueba). «modelo_pct» es un modelo estadístico con la volatilidad de 1 h, 24 h y 48 h (no es certeza); «ventaja» = modelo − precio en puntos; «mov_1h_24h_48h_pct» = movimiento típico del subyacente.
-Mercado global: ${lista0.global?.resumen || 'sin datos'} Tenlo en cuenta (con turbulencia sé más exigente).
-USDC libres: ${libre ?? 'desconocido'}.${config.pred_pagar_con ? ` Si falta USDC, TradIA vende ${config.pred_pagar_con} para pagar (tiene ${(estado.ultimo?.activos || []).find((a: Json) => a.simbolo === config.pred_pagar_con)?.valor ?? '?'} USDC en ${config.pred_pagar_con}).` : ''} Por compra suele usar ${config.pred_monto} USDC; el mínimo por orden en predicciones es ~${MIN_PRED} USDC (no 10: eso es en spot), así que con poco USDC libre igual se puede comprar por lo que haya. Tope total en predicciones: ${config.pred_max_total} USDC.
-Sus posiciones: ${JSON.stringify(pos)}
-Mercados abiertos (los más relevantes a su pedido): ${JSON.stringify(filas)}
-Propón como mucho 3 órdenes. COMPRAR lleva "monto_usdc"; VENDER (solo de sus posiciones) lleva "unidades". REGLA DEL USUARIO: nunca vender con pérdida; VENDER solo si el precio llega a «vender_solo_desde».
-Formato: {"respuesta":"2-4 frases para el usuario","propuestas":[{"coin":"#90170","accion":"COMPRAR","monto_usdc":11,"unidades":null,"confianza":70,"razon":"máx. 25 palabras"}]}` },
-    ]));
-  } catch (e: any) {
-    await bitacora(env, [{ ts: ahora, tipo: 'ia', ok: false, texto: `IA (pedir predicciones) falló: ${String(e.message || e).slice(0, 160)}`, ms: Date.now() - t0 }]);
-    return json({ error: String(e.message || e) }, 502);
-  }
-  const porCoin: Json = {};
-  for (const m of lista) m.lados.forEach((l: Json) => { porCoin[l.coin] = { m, l }; });
-  const ordenes = await leerOrdenes(env), creadas: Json[] = [], descartadas: string[] = [];
-  // Lo que ya tienes en predicciones + compras pendientes: las propuestas no pasan tu tope.
-  let expuesto = mias.reduce((a, p) => a + (Number(p.valor) || 0), 0) + ordenes.filter((o) => PENDIENTE(o) && o.tipo === 'prediccion' && o.accion === 'COMPRAR')
-    .reduce((a, o) => a + Number(o.unidades) * Number(o.limite), 0);
-  for (const x of (Array.isArray(d.propuestas) ? d.propuestas : []).slice(0, 3)) {
-    const coin = String(x.coin || '').trim(), accion = String(x.accion || '').toUpperCase();
-    const ref = porCoin[coin], mia = mias.find((p) => '#' + String(p.coin).slice(1) === coin);
-    if (!ref && !mia) { descartadas.push(`${coin || '?'}: ese mercado no existe o ya cerró`); continue; }
-    if (!['COMPRAR', 'VENDER'].includes(accion)) { descartadas.push(`${coin}: acción inválida`); continue; }
-    if (accion === 'VENDER' && !mia) { descartadas.push(`${coin}: no tienes esa posición para vender`); continue; }
-    const etiqueta = ref ? `${ref.m.pregunta} · ${ref.l.nombre}` : `${mia!.pregunta} · ${mia!.lado_nombre}`;
-    let libro: Json;
-    try { libro = await hlInfo({ type: 'l2Book', coin }); } catch { descartadas.push(`${etiqueta}: no pude leer el libro`); continue; }
-    const nivel = ((libro?.levels || [[], []])[accion === 'COMPRAR' ? 1 : 0] || [])[0];
-    if (!nivel) { descartadas.push(`${etiqueta}: ahora no hay ${accion === 'COMPRAR' ? 'vendedores' : 'compradores'}`); continue; }
-    const px = Number(nivel.px);
-    // Vender: nunca por debajo de lo que pagaste (comisión incluida), por mínima que sea la pérdida.
-    if (accion === 'VENDER') {
-      if (mia!.min_venta == null) { descartadas.push(`${etiqueta}: no sé a cuánto la compraste (espera al próximo ciclo): no vendo para no arriesgar una pérdida`); continue; }
-      if (px < mia!.min_venta) { descartadas.push(`${etiqueta}: el mejor comprador paga ${px} y la compraste a ${mia!.costo}: no vendo con pérdida (sin pérdida desde ${mia!.min_venta})`); continue; }
-    }
-    // El «precio» de la lista es el medio; se paga el del vendedor más barato. Si a ese
-    // precio el modelo ya no ve ventaja, la compra es mala aunque la IA la vea barata.
-    let aviso = '';
-    if (accion === 'COMPRAR' && ref) {
-      const pm = ref.l.prob_modelo != null ? ref.l.prob_modelo / 100 : null;
-      if (pm != null && px >= pm - 0.02) { descartadas.push(`${etiqueta}: el vendedor más barato pide ${px} y el modelo le da ${ref.l.prob_modelo}%: a ese precio no hay ventaja`); continue; }
-      if (ref.l.precio != null && px > ref.l.precio + 0.05) aviso = `Ojo: el precio medio es ${ref.l.precio} pero el vendedor más barato pide ${px} (libro con pocas ofertas).`;
-    }
-    let monto = Math.min(Math.max(MIN_PRED, Number(x.monto_usdc) || config.pred_monto || 11), config.pred_max_total || 30);
-    // Sin otra moneda para pagar, no se propone más de lo que tienes libre.
-    const tope_libre = accion === 'COMPRAR' && !config.pred_pagar_con && typeof libre === 'number' ? libre : null;
-    if (tope_libre != null && monto > tope_libre) monto = tope_libre;
-    const unidades = accion === 'COMPRAR' ? Math.max(1, (tope_libre != null && monto >= tope_libre ? Math.floor : Math.ceil)(monto / px)) : Math.min(Math.floor(mia!.cantidad), Math.max(1, Math.floor(Number(x.unidades) || mia!.cantidad)));
-    if (accion === 'COMPRAR' && (unidades * px < MIN_PRED - 1e-9 || (tope_libre != null && unidades * px > tope_libre + 1e-9))) {
-      descartadas.push(`${etiqueta}: con ${tope_libre != null ? tope_libre.toFixed(2) : '?'} USDC libres no alcanza para el mínimo de ~${MIN_PRED} USDC a ${px}`); continue;
-    }
-    if (accion === 'COMPRAR' && expuesto + unidades * px > (config.pred_max_total || 30) + 0.5) {
-      descartadas.push(`${etiqueta}: pasaría tu tope de ${config.pred_max_total} USDC en predicciones (ya usas ${expuesto.toFixed(2)})`); continue;
-    }
-    const v = limpiarPrediccion({}, { coin, accion, unidades, limite: px, etiqueta, razon: String(x.razon || ''), pagar_con: accion === 'COMPRAR' ? config.pred_pagar_con : '' }, config);
-    if (!v.orden) { descartadas.push(`${etiqueta}: ${v.error}`); continue; }
-    const conf = Math.max(0, Math.min(100, Number(x.confianza) || 0));
-    const n: Json = { ...v.orden, id: nuevoId('iap'), ts: ahora, origen: 'ia', estado: 'propuesta', confianza: conf, ...(aviso ? { aviso } : {}),
-      ia: { accion, confianza: conf, razon: String(x.razon || '').slice(0, 240) },
-      vence: Math.min(ahora + 2 * 3600_000, ref?.m.vence || Infinity),
-      historia: [{ ts: ahora, quien: 'ia', texto: `Propuesta al pedirle «${instruccion.slice(0, 80)}»: ${String(x.razon || '').slice(0, 160)}` }] };
-    ordenes.unshift(n);
-    creadas.push(n);
-    if (accion === 'COMPRAR') expuesto += unidades * px;
-  }
-  if (creadas.length) await guardarOrdenes(env, ordenes);
-  await bitacora(env, [{ ts: ahora, tipo: 'ia', ok: true, modelo, ms: Date.now() - t0,
-    texto: `IA (pedir predicciones) respondió con ${modelo} en ${((Date.now() - t0) / 1000).toFixed(1)} s: ${creadas.length} propuesta${creadas.length === 1 ? '' : 's'}` },
-    ...creadas.map((o) => ({ ts: ahora, tipo: 'orden', ok: true, texto: `IA propuso: ${textoOrden(o)} (espera tu aprobación)`, id: o.id }))]);
-  return json({ ok: true, modelo, respuesta: String(d.respuesta || '').slice(0, 800), ordenes: creadas, descartadas });
 }
 
 // ---------------------------------------------------------------- Gráficas
@@ -1473,19 +955,8 @@ async function api(req: Request, env: Env, ruta: string, url: URL): Promise<Resp
       return ordenesApi(env, cuerpo);
     case 'GET /api/historial':
       return json({ items: await leer<Json[]>(env, 'bitacora', []) });
-    case 'GET /api/predicciones/mercados':
-      return prediccionMercados().catch((e) => json({ error: `Hyperliquid no respondió: ${String(e?.message || e).slice(0, 120)}` }, 502));
-    case 'GET /api/predicciones/grafica':
-      return prediccionGrafica(url).catch((e) => json({ error: `Hyperliquid no respondió: ${String(e?.message || e).slice(0, 120)}` }, 502));
-    case 'GET /api/predicciones/libro':
-      return prediccionLibro(url).catch((e) => json({ error: `Hyperliquid no respondió: ${String(e?.message || e).slice(0, 120)}` }, 502));
-    case 'POST /api/predicciones/pedir':
-      return prediccionPedir(env, cuerpo).catch((e) => json({ error: `No pude preparar la propuesta: ${String(e?.message || e).slice(0, 120)}` }, 502));
-    case 'POST /api/predicciones/analizar':
-      return prediccionAnalizar(env, cuerpo).catch(async (e) => {
-        await bitacora(env, [{ ts: Date.now(), tipo: 'ia', ok: false, texto: `IA (predicción) falló: ${String(e?.message || e).slice(0, 160)}` }]);
-        return json({ error: String(e?.message || e) }, 502);
-      });
+    case 'GET /api/mercado/global':
+      return json(await contextoGlobal().catch((e) => ({ error: `Hyperliquid no respondió: ${String(e?.message || e).slice(0, 120)}` })));
     case 'GET /api/graficas':
       return graficasApi(env, url);
     case 'GET /api/semaforo':
@@ -1582,7 +1053,8 @@ export default {
         if (!iguales(token(req), env.RUNNER_TOKEN)) return json({ error: 'No autorizado' }, 401);
         if (req.method === 'GET' && ruta === '/runner/config') return runnerConfig(env);
         // El runner usa la misma lectura de mercados y el mismo modelo que la app.
-        if (req.method === 'GET' && ruta === '/runner/predicciones') return json(await listaMercados());
+        // «/runner/predicciones» queda como alias para runners anteriores (sin mercados).
+        if (req.method === 'GET' && (ruta === '/runner/mercado' || ruta === '/runner/predicciones')) return json({ mercados: [], ...(await contextoGlobal().catch(() => ({ global: null }))) });
         if (req.method === 'POST' && ruta === '/runner/tomar') return runnerTomar(env, (await req.json()) as Json);
         if (req.method === 'POST' && ruta === '/runner/reporte') return runnerReporte(env, (await req.json()) as Json);
         return json({ error: 'Ruta no encontrada' }, 404);

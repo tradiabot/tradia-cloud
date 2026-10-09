@@ -1,5 +1,12 @@
 # Cambios
 
+## 1.1.0 · 2026-10-09 · Enfocado en el agente
+
+- **Sin predicciones**: se quitaron los mercados de predicción de Hyperliquid (pestaña 🎲, ajustes, supervisor, gráficas y órdenes). Tendrán **su propia app**. El código quedó guardado en la rama [`con-predicciones`](https://github.com/tradiabot/tradia-cloud/tree/con-predicciones).
+- **🌍 Mercado global** pasa a la pestaña **IA**: cripto, bolsa, oro y petróleo en 1, 24 y 48 h. La IA lo sigue usando en cada decisión.
+- La nube ignora las órdenes de predicción que quedaran de la versión anterior: no se ejecutan.
+- Toca **Config → Actualizar nube** después de instalar esta versión.
+
 ## 1.0.0 · 2026-10-08 · Primera versión
 
 *tradIA cloud*: tu agente cripto en tu propia nube. Nace de la arquitectura abierta de Kumo Bot y de lo aprendido en TradBot.
@@ -11,7 +18,7 @@
   - sin clave: Kilo, LLM7 y OVH.
   
   Tiene respaldo en cadena, ▶ PROBAR, orden ↑↓ y claves cifradas (AES-GCM). La nube elige sola los modelos que tiene cada cuenta.
-- **🪙 Acumular (no vender)**: marca BTC u otras monedas. El agente las compra pero nunca las vende por su cuenta: ni por estrategia, ni por stop, ni por la IA, ni para pagar predicciones. Solo tus órdenes manuales.
+- **🪙 Acumular (no vender)**: marca BTC u otras monedas. El agente las compra pero nunca las vende por su cuenta: ni por estrategia, ni por stop, ni por la IA. Solo tus órdenes manuales.
 - **Candado de pérdidas**: por defecto ninguna venta automática con pérdida ni con costo desconocido.
 - **Exchanges**: Hyperliquid y MEXC (sin KYC), Crypto.com, Kraken, Coinbase, Bitstamp, Gate u otro de ccxt.
 - **Marca e interfaz**:

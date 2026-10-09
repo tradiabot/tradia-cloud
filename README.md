@@ -86,7 +86,7 @@ Binance, Bybit, OKX, KuCoin y Bitget **no se ofrecen** porque bloquean los servi
 - **Órdenes con IA**: «Pedir a la IA» en lenguaje natural, editar las sugeridas, precio límite y caducidad.
 - **Candado de pérdidas**: ninguna venta automática por debajo de tu costo + comisión, ni si el costo es desconocido. Solo pasan tus órdenes manuales.
 - **🪙 Acumular**: BTC u otras monedas que el agente compra pero nunca vende sola.
-- **Radar** de monedas con análisis de IA, **gráficas** (precio, costo promedio, RSI, MACD) y **predicciones de Hyperliquid** (solo sugerencias).
+- **Radar** de monedas con análisis de IA, **gráficas** (precio, costo promedio, RSI, MACD) y **🌍 mercado global** (cripto, bolsa, oro y petróleo) en la pestaña IA.
 - **Semáforo** de nube, ciclos, IA y exchange, con «Buscar y corregir».
 - **Modo simple**, 5 temas visuales y avisos nativos en Android.
 

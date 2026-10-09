@@ -98,19 +98,6 @@ class Consenso(Base):
         self.assertEqual(modelo, "consenso:nemotron-3-super-120b-a12b+qwen3.8-27b")
         self.assertEqual(out["BTC"]["accion"], "COMPRAR")
 
-    def test_prediccion_prob_mediana_y_empate_mantener(self):
-        def r(acc, conf, prob):
-            return json.dumps({"opiniones": [{"coin": "#90171", "accion": acc, "confianza": conf, "prob": prob, "razon": "x"}]})
-        p, _ = self.con({"openai/gpt-oss-120b": r("COMPRAR MÁS", 70, 60), "gemini-3.1-flash": r("COMPRAR MÁS", 80, 70),
-                         "nvidia/nemotron-3-super-120b-a12b:free": r("VENDER", 60, 20)})
-        with p:
-            out, _, _ = ia.opinar_predicciones([], [{"coin": "#90171"}])
-        self.assertEqual((out["#90171"]["accion"], out["#90171"]["prob"]), ("COMPRAR MÁS", 65))  # sin el voto de vender
-        p, _ = self.con({"openai/gpt-oss-120b": r("VENDER", 70, 30), "gemini-3.1-flash": r("COMPRAR MÁS", 70, 70)})
-        with p:
-            out, _, _ = ia.opinar_predicciones([], [{"coin": "#90171"}])
-        self.assertEqual(out["#90171"]["accion"], "MANTENER")
-
 
 class FormatosRaros(Base):
     def test_diccionario_por_activo_cuenta_como_voto(self):

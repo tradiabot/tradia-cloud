@@ -24,11 +24,19 @@ from decimal import Decimal, ROUND_DOWN
 
 import ccxt
 
-from predicciones import separar
 
 # Exchanges que bloquean los servidores de EE. UU. donde corre GitHub Actions.
 BLOQUEAN_EEUU = {"binance", "bybit", "okx", "bitget", "kucoin"}
 BILLETERA = {"hyperliquid"}  # se conectan con dirección + clave privada en vez de API key
+
+
+def separar(saldos):
+    """({moneda: cant}, {"+N": cant}): en Hyperliquid los tokens «+N» son mercados de
+    predicción, no monedas, así que se apartan para no operarlos ni valorarlos."""
+    normales, aparte = {}, {}
+    for k, v in saldos.items():
+        (aparte if re.match(r"^\+\d+$", str(k)) else normales)[k] = v
+    return normales, aparte
 
 
 class ErrorExchange(Exception):
@@ -73,7 +81,7 @@ class CcxtExchange:
         self._mercados = None
         self._cuenta_lista = exchange_id not in BILLETERA
         self.aviso_cuenta = None  # explicación para el usuario si se corrigió la dirección
-        self.predicciones = {}  # {"+N": cantidad} de mercados de predicción (Hyperliquid)
+        self.predicciones = {}  # {"+N": cantidad}: tokens de predicción de Hyperliquid (se ignoran)
         self.entradas = {}  # {"+N" o "HYPE": precio promedio de compra según Hyperliquid}
 
     def _info_hl(self, cuerpo):
@@ -140,14 +148,14 @@ class CcxtExchange:
             raise ErrorExchange(_explicar(self.id, e))
         total = b.get("total") or {}
         saldos = {k.upper(): _f(v) for k, v in total.items() if _f(v) > 0}
-        # Hyperliquid: los mercados de predicción («+N») no son monedas; van aparte.
+        # Hyperliquid: los tokens de mercados de predicción («+N») no son monedas: no se operan aquí.
         saldos, self.predicciones = separar(saldos)
         # Hyperliquid da lo que pagaste por cada token («entryNtl»): precio promedio de compra.
-        # Vale para predicciones y monedas spot (así TradIA sabe tu costo real, no uno estimado).
+        # Así TradIA sabe tu costo real, no uno estimado.
         self.entradas = {}
         for x in ((b.get("info") or {}).get("balances") or []) if isinstance(b.get("info"), dict) else []:
             coin, tot, ntl = str(x.get("coin") or "").upper(), _f(x.get("total")), _f(x.get("entryNtl"))
-            if (coin in self.predicciones or coin in saldos) and coin not in ESTABLES and tot > 0 and ntl > 0:
+            if coin in saldos and coin not in ESTABLES and tot > 0 and ntl > 0:
                 self.entradas[coin] = ntl / tot
         return saldos
 
@@ -161,51 +169,6 @@ class CcxtExchange:
         except ccxt.BaseError:
             return 0.0
         return _f((b.get("total") or {}).get("USDC"))
-
-    def mejor_precio_prediccion(self, cod, comprar):
-        """Mejor precio contrario en el libro: quien vende (si compras) o quien compra (si vendes)."""
-        try:
-            niveles = self._info_hl({"type": "l2Book", "coin": f"#{int(cod)}"}).get("levels") or [[], []]
-            lado = niveles[1] if comprar else niveles[0]
-            return {"precio": _f(lado[0]["px"]), "unidades": _f(lado[0]["sz"])} if lado else None
-        except Exception:
-            return None
-
-    def orden_prediccion(self, cod, comprar, unidades, limite):
-        """Hyperliquid HIP-4: compra o vende `unidades` del lado «#cod» a `limite` o mejor.
-        Es IOC (se llena ya lo que se pueda; lo demás se cancela): nunca queda una orden
-        olvidada en el libro. ccxt no conoce estos mercados, así que la acción se arma y
-        firma aquí con la API wallet (activo = 100 000 000 + cod)."""
-        if self.id != "hyperliquid" or not self.con_claves:
-            raise ErrorExchange("Las predicciones solo se operan en Hyperliquid con tus claves")
-        if not (0.001 <= limite <= 0.999) or int(unidades) < 1:
-            raise ErrorExchange("Precio límite entre 0.001 y 0.999 y al menos 1 unidad")
-        px = f"{limite:.5g}"  # Hyperliquid acepta hasta 5 cifras significativas (p. ej. 0.81001)
-        accion = {"type": "order", "orders": [{"a": 100_000_000 + int(cod), "b": bool(comprar), "p": px, "s": str(int(unidades)),
-                                               "r": False, "t": {"limit": {"tif": "Ioc"}}}], "grouping": "na"}
-        nonce = self.ex.milliseconds()
-        try:
-            firma = self.ex.sign_l1_action(accion, nonce)
-            resp = self.ex.private_post_exchange({"action": accion, "nonce": nonce, "signature": firma})
-        except ccxt.BaseError as e:
-            # ccxt convierte los errores de Hyperliquid en excepción con el JSON dentro.
-            m = re.search(r'"error":\s*"([^"]+)"', str(e)) or re.search(r'"response":\s*"([^"]+)"', str(e))
-            texto = m.group(1) if m else str(e)
-            if "could not immediately match" in texto:
-                return {"cantidad": 0.0, "precio": 0.0, "total": 0.0, "id": None, "mejor": self.mejor_precio_prediccion(cod, comprar)}
-            raise ErrorExchange(f"Hyperliquid: {texto[:200]}")
-        if not isinstance(resp, dict) or resp.get("status") != "ok":
-            raise ErrorExchange(f"Hyperliquid: {str((resp or {}).get('response') if isinstance(resp, dict) else resp)[:200]}")
-        estado = (((resp.get("response") or {}).get("data") or {}).get("statuses") or [{}])[0]
-        if isinstance(estado, dict) and estado.get("error"):
-            if "could not immediately match" in estado["error"]:
-                return {"cantidad": 0.0, "precio": 0.0, "total": 0.0, "id": None, "mejor": self.mejor_precio_prediccion(cod, comprar)}
-            raise ErrorExchange(f"Hyperliquid: {estado['error'][:200]}")
-        lleno = estado.get("filled") if isinstance(estado, dict) else None
-        if not lleno:
-            return {"cantidad": 0.0, "precio": 0.0, "total": 0.0, "id": None, "mejor": self.mejor_precio_prediccion(cod, comprar)}
-        cant, precio = _f(lleno.get("totalSz")), _f(lleno.get("avgPx"))
-        return {"cantidad": cant, "precio": precio, "total": round(cant * precio, 4), "id": lleno.get("oid")}
 
     def precios(self, simbolos):
         pares = [self._par(s) for s in simbolos if s.upper() != self.quote and self.existe(s)]

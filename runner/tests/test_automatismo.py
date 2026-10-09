@@ -8,7 +8,6 @@ import agente_runner as K
 import ordenes as O
 from exchanges import CcxtExchange, ErrorExchange
 from tests.test_ciclo_ordenes import Pub
-from tests.test_pagar_con import HL, ORD as ORD_PRED
 
 ENV = {"EXCHANGE_ID": "prueba", "EXCHANGE_API_KEY": ""}
 APROBADA = {"id": "u1", "simbolo": "HYPE", "accion": "COMPRAR", "monto": 12, "estado": "aprobada", "origen": "usuario"}
@@ -79,35 +78,6 @@ class NuncaDosVeces(unittest.TestCase):
 MERCADOS = [{"mercado": 9017, "horas": 5, "lados": [{"coin": "#90170", "prob_modelo": 60.0}, {"coin": "#90171", "prob_modelo": 40.0}]}]
 
 
-class CompraDeLaIaSeRevisa(unittest.TestCase):
-    """Una propuesta de la IA aprobada más tarde puede tener un precio viejo."""
-
-    def ejecutar(self, ask, mercados=MERCADOS, origen="ia"):
-        ex = HL(usdc=100, ask=ask)
-        upd, op = O.ejecutar_prediccion(ex, dict(ORD_PRED, origen=origen), False, {"pred_ventaja": 8}, mercados)
-        return upd, op, ex
-
-    def test_con_ventaja_compra(self):
-        upd, op, ex = self.ejecutar(0.44)  # tope = 0.60 - 0.04 = 0.56
-        self.assertEqual(upd["estado"], "ejecutada")
-
-    def test_sin_ventaja_no_compra(self):
-        upd, op, ex = self.ejecutar(0.58)
-        self.assertIsNone(op)
-        self.assertIn("ya no tiene ventaja", upd["error"])
-        self.assertFalse([x for x in ex.log if x[0] == "prediccion"])
-
-    def test_mercado_cerrado_o_sin_datos(self):
-        self.assertIn("ya no está abierto", self.ejecutar(0.44, [])[0]["error"])
-        self.assertIn("no pude leer", self.ejecutar(0.44, None)[0]["error"])
-        casi = [dict(MERCADOS[0], horas=0.5)]
-        self.assertIn("vence en 0.5 h", self.ejecutar(0.44, casi)[0]["error"])
-
-    def test_la_tuya_no_se_revisa(self):
-        upd, op, ex = self.ejecutar(0.44, None, origen="usuario")
-        self.assertEqual(upd["estado"], "ejecutada")
-
-
 class VentaSpotSinPerdida(unittest.TestCase):
     CFG = {"quote": "USDC", "monto_min": 5, "nunca_vender_con_perdida": True}
 
@@ -156,15 +126,6 @@ class VentaSpotSinPerdida(unittest.TestCase):
         ex.ex.create_order = lambda *a: {"filled": 0.0, "amount": 1.0}
         with self.assertRaises(ErrorExchange):
             ex.vender("HYPE", 1.0, 39.5)
-
-    def test_pagar_con_hype_no_lo_vende_con_perdida(self):
-        ex = HL(usdc=2.0, hype=1.0)
-        ex.entradas = {"HYPE": 45.0}  # HYPE vale 40
-        upd, op = O.ejecutar(ex, ORD_PRED, {}, {}, {}, {"pred_pagar_con": "HYPE"}, False)
-        self.assertEqual(upd["estado"], "error")
-        self.assertIn("venderla sería con pérdida", upd["error"])
-        self.assertEqual(ex.log, [])
-
 
 class EstrategiaSinPerdida(unittest.TestCase):
     CFG = {**E.CONFIG_DEFECTO, "quote": "USDC", "objetivo": {"HYPE": 10}, "ganancia_min": 0}

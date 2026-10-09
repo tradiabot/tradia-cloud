@@ -70,3 +70,12 @@ class Ordenes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SinPredicciones(unittest.TestCase):
+    def test_orden_de_prediccion_vieja_no_se_ejecuta(self):
+        ex = sim({"USDC": 50}, {"HYPE": 40.0})
+        upd, op = O.ejecutar(ex, {"id": "p1", "tipo": "prediccion", "coin": "#90170", "accion": "COMPRAR", "unidades": 5, "limite": 0.4},
+                             ex.saldos(), {}, {}, CFG, False)
+        self.assertEqual((upd["estado"], op), ("error", None))
+        self.assertEqual(ex.saldos()["USDC"], 50)
